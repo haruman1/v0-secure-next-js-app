@@ -1,4 +1,5 @@
--- Medical Evacuation System - MySQL Database Setup
+-- Air Medical Evacuation System - MySQL Database Setup
+-- Sistem Pembidangan Medis Udara
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
@@ -16,6 +17,53 @@ CREATE TABLE IF NOT EXISTS users (
   INDEX idx_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Air Medical Evacuation table (Pembidangan Medis Udara)
+CREATE TABLE IF NOT EXISTS air_medical_evacuation (
+  id VARCHAR(36) NOT NULL DEFAULT (UUID()) PRIMARY KEY,
+  user_id INT,
+  jenisLayanan ENUM('Keberangkatan','Kedatangan'),
+  jenisPesawat ENUM('Komersial','jetPribadi'),
+  namaGroundhandling VARCHAR(255),
+  namaPetugas VARCHAR(255),
+  noTeleponKantor VARCHAR(50),
+  emailPerusahaan VARCHAR(255),
+  namaMaskapai VARCHAR(255),
+  noPenerbangan VARCHAR(255),
+  noKursi VARCHAR(20),
+  tanggalPerjalanan DATE,
+  jamPerjalanan TIME,
+  namaPasien VARCHAR(255),
+  jenisKelamin ENUM('lakiLaki','Perempuan'),
+  tanggalLahir DATE,
+  oksigen ENUM('ya','tidak'),
+  posisiPasien ENUM('duduk','berbaring'),
+  tingkatKesadaran VARCHAR(100),
+  tekananDarah VARCHAR(50),
+  nadi VARCHAR(10),
+  frekuensiPernafasan VARCHAR(10),
+  saturasiOksigen VARCHAR(10),
+  jumlahPendamping INT,
+  hubunganPasien ENUM('Keluarga','Dokter','Perawat','Lainnya'),
+  namaPendamping VARCHAR(255),
+  noTeleponPendamping VARCHAR(50),
+  noTeleponKeluarga VARCHAR(50),
+  status ENUM('pending','valid','canceled','reviewed') DEFAULT 'pending',
+  noSuratPraktik VARCHAR(255),
+  fotoKondisiPasien VARCHAR(500),
+  ktpPasien VARCHAR(500),
+  manifetPrivateJet VARCHAR(500),
+  rekamMedisPasien VARCHAR(500),
+  suratRujukan VARCHAR(500),
+  tiketPesawat VARCHAR(500),
+  dokumentPetugasMedis VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+  INDEX idx_user_id (user_id),
+  INDEX idx_status (status),
+  INDEX idx_tanggal_perjalanan (tanggalPerjalanan)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 -- Password Reset Tokens table
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -32,39 +80,13 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
   INDEX idx_expires_at (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Evacuation Requests table
-CREATE TABLE IF NOT EXISTS evacuation_requests (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  patient_name VARCHAR(255) NOT NULL,
-  patient_age INT,
-  patient_condition TEXT,
-  location VARCHAR(500) NOT NULL,
-  destination VARCHAR(500),
-  priority_level ENUM('low', 'medium', 'high', 'critical') NOT NULL DEFAULT 'medium',
-  status ENUM('pending', 'approved', 'in_transit', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
-  medical_notes TEXT,
-  contact_person VARCHAR(255),
-  contact_phone VARCHAR(20),
-  request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  approval_date TIMESTAMP NULL,
-  completed_date TIMESTAMP NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  INDEX idx_user_id (user_id),
-  INDEX idx_status (status),
-  INDEX idx_priority_level (priority_level),
-  INDEX idx_request_date (request_date)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- Audit Logs table
 CREATE TABLE IF NOT EXISTS audit_logs (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
   action VARCHAR(255) NOT NULL,
   entity_type VARCHAR(100),
-  entity_id INT,
+  entity_id VARCHAR(36),
   details JSON,
   ip_address VARCHAR(45),
   user_agent TEXT,

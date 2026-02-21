@@ -16,6 +16,47 @@ export async function GET(
     const { id } = await params;
 
     const results = await query(
+      'SELECT * FROM air_medical_evacuation WHERE id = ?',
+      [id]
+    );
+
+    if (!Array.isArray(results) || results.length === 0) {
+      return NextResponse.json({ error: 'Evacuation not found' }, { status: 404 });
+    }
+
+    const evacuation = results[0] as any;
+
+    // Check authorization
+    const userResults = await query('SELECT role FROM users WHERE id = ?', [
+      session.userId,
+    ]);
+    
+    if (!Array.isArray(userResults) || userResults.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    
+    const userRole = (userResults[0] as any).role;
+
+    if (userRole !== 'admin' && evacuation.user_id !== session.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: evacuation,
+    });
+  } catch (error) {
+    console.error('Fetch evacuation error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+    const { id } = await params;
+
+    const results = await query(
       'SELECT * FROM evacuation_requests WHERE id = ?',
       [id]
     );
@@ -64,7 +105,7 @@ export async function PUT(
 
     // Get evacuation
     const results = await query(
-      'SELECT * FROM evacuation_requests WHERE id = ?',
+      'SELECT * FROM air_medical_evacuation WHERE id = ?',
       [id]
     );
 
@@ -86,20 +127,18 @@ export async function PUT(
 
     // Admin can change status, others can only update their own details
     const allowedFields = userRole === 'admin'
-      ? ['patient_name', 'patient_age', 'patient_condition', 'location', 
-         'destination', 'priority_level', 'status', 'medical_notes', 
-         'contact_person', 'contact_phone']
-      : ['patient_name', 'patient_age', 'patient_condition', 'location',
-         'destination', 'priority_level', 'medical_notes', 
-         'contact_person', 'contact_phone'];
+      ? Object.keys(evacuation).filter(k => k !== 'id' && k !== 'user_id' && k !== 'created_at' && k !== 'updated_at')
+      : ['namaPasien', 'jenisKelamin', 'tanggalLahir', 'oksigen', 'posisiPasien', 
+         'tingkatKesadaran', 'tekananDarah', 'nadi', 'frekuensiPernafasan', 
+         'saturasiOksigen', 'jumlahPendamping', 'hubunganPasien', 'namaPendamping', 
+         'noTeleponPendamping', 'noTeleponKeluarga'];
 
     const updateSet = [];
     const values = [];
 
     for (const [key, value] of Object.entries(updates)) {
-      const dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-      if (allowedFields.includes(dbKey)) {
-        updateSet.push(`${dbKey} = ?`);
+      if (allowedFields.includes(key)) {
+        updateSet.push(`${key} = ?`);
         values.push(value);
       }
     }
@@ -114,15 +153,15 @@ export async function PUT(
     values.push(id);
 
     await query(
-      `UPDATE evacuation_requests SET ${updateSet.join(', ')} WHERE id = ?`,
+      `UPDATE air_medical_evacuation SET ${updateSet.join(', ')} WHERE id = ?`,
       values
     );
 
     await logAuditEvent(
       session.userId,
       'EVACUATION_REQUEST_UPDATED',
-      'evacuation_requests',
-      parseInt(id),
+      'air_medical_evacuation',
+      id,
       updates
     );
 
@@ -150,7 +189,7 @@ export async function DELETE(
 
     // Get evacuation
     const results = await query(
-      'SELECT * FROM evacuation_requests WHERE id = ?',
+      'SELECT * FROM air_medical_evacuation WHERE id = ?',
       [id]
     );
 
@@ -170,13 +209,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await query('DELETE FROM evacuation_requests WHERE id = ?', [id]);
+    await query('DELETE FROM air_medical_evacuation WHERE id = ?', [id]);
 
     await logAuditEvent(
       session.userId,
       'EVACUATION_REQUEST_DELETED',
-      'evacuation_requests',
-      parseInt(id)
+      'air_medical_evacuation',
+      id
     );
 
     return NextResponse.json({ success: true });

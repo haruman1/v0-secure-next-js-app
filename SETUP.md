@@ -1,6 +1,6 @@
-# Medical Evacuation System - Setup Guide
+# Air Medical Evacuation System - Setup Guide
 
-This is a secure medical evacuation management CRUD application built with Next.js, MySQL, and comprehensive authentication/authorization features.
+This is a secure air medical evacuation (Pembidangan Medis Udara) management CRUD application built with Next.js, MySQL, and comprehensive authentication/authorization features. Designed for managing medical flight evacuations with complete patient, crew, and document tracking.
 
 ## Features
 
@@ -12,25 +12,35 @@ This is a secure medical evacuation management CRUD application built with Next.
 
 ✅ **Role-Based Access Control**
 - Admin role: Full system access, user management, system-wide evacuation overview, audit logs
-- User role: Can only create and manage their own evacuation requests
+- User role: Can create and manage their own evacuation requests
 
-✅ **Evacuation Management**
-- Create, read, update, delete evacuation requests
-- Priority levels: Low, Medium, High, Critical
-- Status tracking: Pending, Approved, In Transit, Completed, Cancelled
-- Admin can change status, users can only edit their own details
+✅ **Air Medical Evacuation Management**
+- Complete Indonesian air medical evacuation schema (Pembidangan Medis Udara)
+- Full CRUD operations on evacuation records
+- Service type tracking: Departure (Keberangkatan) or Arrival (Kedatangan)
+- Aircraft types: Commercial or Private Jet
+- Patient health monitoring: Vital signs, oxygen requirements, consciousness level
+- Companion/family tracking with contact details
+- Status tracking: Pending, Valid, Canceled, Reviewed
+
+✅ **File Upload & Document Management**
+- Upload and store medical documents (photos, ID copies, medical records, referral letters, tickets)
+- File size limits and type validation
+- Secure file storage in public/uploads directory
+- Supported formats: JPEG, PNG, WebP, PDF
 
 ✅ **Security Features**
 - Parameterized SQL queries to prevent SQL injection
 - Input validation and sanitization
 - CSRF protection with secure session tokens
 - XSS prevention with proper escaping
+- File upload security with type/size validation
 - Rate limiting ready (needs external implementation)
 - Audit trail logging for all actions
 
 ✅ **User Dashboards**
-- Admin dashboard: System-wide analytics, user management, filtering, sorting
-- User dashboard: Personal evacuation tracking, statistics
+- Admin dashboard: System-wide evacuation overview, filtering, sorting
+- User dashboard: Personal evacuation tracking, request history
 
 ## Prerequisites
 

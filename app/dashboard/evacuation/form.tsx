@@ -6,12 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Upload } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-interface EvacuationFormProps {
+interface AirMedicalEvacuationFormProps {
   initialData?: any;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: FormData) => Promise<void>;
   isAdmin?: boolean;
   isLoading?: boolean;
 }
@@ -21,18 +21,45 @@ export function EvacuationForm({
   onSubmit,
   isAdmin = false,
   isLoading = false,
-}: EvacuationFormProps) {
+}: AirMedicalEvacuationFormProps) {
   const [formData, setFormData] = useState({
-    patientName: initialData?.patient_name || '',
-    patientAge: initialData?.patient_age || '',
-    patientCondition: initialData?.patient_condition || '',
-    location: initialData?.location || '',
-    destination: initialData?.destination || '',
-    priorityLevel: initialData?.priority_level || 'medium',
-    medicalNotes: initialData?.medical_notes || '',
-    contactPerson: initialData?.contact_person || '',
-    contactPhone: initialData?.contact_phone || '',
+    jenisLayanan: initialData?.jenisLayanan || '',
+    jenisPesawat: initialData?.jenisPesawat || '',
+    namaGroundhandling: initialData?.namaGroundhandling || '',
+    namaPetugas: initialData?.namaPetugas || '',
+    noTeleponKantor: initialData?.noTeleponKantor || '',
+    emailPerusahaan: initialData?.emailPerusahaan || '',
+    namaMaskapai: initialData?.namaMaskapai || '',
+    noPenerbangan: initialData?.noPenerbangan || '',
+    noKursi: initialData?.noKursi || '',
+    tanggalPerjalanan: initialData?.tanggalPerjalanan || '',
+    jamPerjalanan: initialData?.jamPerjalanan || '',
+    namaPasien: initialData?.namaPasien || '',
+    jenisKelamin: initialData?.jenisKelamin || '',
+    tanggalLahir: initialData?.tanggalLahir || '',
+    oksigen: initialData?.oksigen || '',
+    posisiPasien: initialData?.posisiPasien || '',
+    tingkatKesadaran: initialData?.tingkatKesadaran || '',
+    tekananDarah: initialData?.tekananDarah || '',
+    nadi: initialData?.nadi || '',
+    frekuensiPernafasan: initialData?.frekuensiPernafasan || '',
+    saturasiOksigen: initialData?.saturasiOksigen || '',
+    jumlahPendamping: initialData?.jumlahPendamping || '',
+    hubunganPasien: initialData?.hubunganPasien || '',
+    namaPendamping: initialData?.namaPendamping || '',
+    noTeleponPendamping: initialData?.noTeleponPendamping || '',
+    noTeleponKeluarga: initialData?.noTeleponKeluarga || '',
     status: initialData?.status || 'pending',
+  });
+
+  const [files, setFiles] = useState<{ [key: string]: File | null }>({
+    fotoKondisiPasien: null,
+    ktpPasien: null,
+    manifetPrivateJet: null,
+    rekamMedisPasien: null,
+    suratRujukan: null,
+    tiketPesawat: null,
+    dokumentPetugasMedis: null,
   });
 
   const [error, setError] = useState('');
@@ -49,31 +76,75 @@ export function EvacuationForm({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (name: string, file: File | null) => {
+    setFiles((prev) => ({ ...prev, [name]: file }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
 
-    if (!formData.patientName || !formData.location) {
-      setError('Patient name and location are required');
+    if (!formData.namaPasien || !formData.tanggalPerjalanan) {
+      setError('Patient name and travel date are required');
       return;
     }
 
     try {
-      await onSubmit(formData);
+      const submitFormData = new FormData();
+      
+      // Add form fields
+      Object.entries(formData).forEach(([key, value]) => {
+        submitFormData.append(key, String(value || ''));
+      });
+
+      // Add files
+      Object.entries(files).forEach(([key, file]) => {
+        if (file) {
+          submitFormData.append(key, file);
+        }
+      });
+
+      await onSubmit(submitFormData);
       setSuccess(true);
       if (!initialData) {
         setFormData({
-          patientName: '',
-          patientAge: '',
-          patientCondition: '',
-          location: '',
-          destination: '',
-          priorityLevel: 'medium',
-          medicalNotes: '',
-          contactPerson: '',
-          contactPhone: '',
+          jenisLayanan: '',
+          jenisPesawat: '',
+          namaGroundhandling: '',
+          namaPetugas: '',
+          noTeleponKantor: '',
+          emailPerusahaan: '',
+          namaMaskapai: '',
+          noPenerbangan: '',
+          noKursi: '',
+          tanggalPerjalanan: '',
+          jamPerjalanan: '',
+          namaPasien: '',
+          jenisKelamin: '',
+          tanggalLahir: '',
+          oksigen: '',
+          posisiPasien: '',
+          tingkatKesadaran: '',
+          tekananDarah: '',
+          nadi: '',
+          frekuensiPernafasan: '',
+          saturasiOksigen: '',
+          jumlahPendamping: '',
+          hubunganPasien: '',
+          namaPendamping: '',
+          noTeleponPendamping: '',
+          noTeleponKeluarga: '',
           status: 'pending',
+        });
+        setFiles({
+          fotoKondisiPasien: null,
+          ktpPasien: null,
+          manifetPrivateJet: null,
+          rekamMedisPasien: null,
+          suratRujukan: null,
+          tiketPesawat: null,
+          dokumentPetugasMedis: null,
         });
       }
     } catch (err) {
@@ -85,7 +156,7 @@ export function EvacuationForm({
     <Card>
       <CardHeader>
         <CardTitle>
-          {initialData ? 'Edit Evacuation Request' : 'Create New Evacuation Request'}
+          {initialData ? 'Edit Air Medical Evacuation' : 'Create Air Medical Evacuation Request'}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -98,205 +169,193 @@ export function EvacuationForm({
           )}
 
           {success && (
-            <Alert className="bg-green-50 border-green-200 text-green-800 dark:bg-green-950/20 dark:border-green-800 dark:text-green-100">
-              <CheckCircle2 className="h-4 w-4" />
-              <AlertDescription>
-                {initialData ? 'Evacuation request updated successfully' : 'Evacuation request created successfully'}
+            <Alert className="bg-green-50 border-green-200">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                Evacuation request saved successfully!
               </AlertDescription>
             </Alert>
           )}
 
+          {/* Service Type & Aircraft */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Jenis Layanan</label>
+              <Select value={formData.jenisLayanan} onValueChange={(val) => handleSelectChange('jenisLayanan', val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih jenis layanan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Keberangkatan">Keberangkatan (Departure)</SelectItem>
+                  <SelectItem value="Kedatangan">Kedatangan (Arrival)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Jenis Pesawat</label>
+              <Select value={formData.jenisPesawat} onValueChange={(val) => handleSelectChange('jenisPesawat', val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih jenis pesawat" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Komersial">Komersial</SelectItem>
+                  <SelectItem value="jetPribadi">Jet Pribadi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Ground Handling & Company */}
+          <div className="grid grid-cols-2 gap-4">
+            <Input placeholder="Nama Ground Handling" name="namaGroundhandling" value={formData.namaGroundhandling} onChange={handleChange} />
+            <Input placeholder="Nama Petugas" name="namaPetugas" value={formData.namaPetugas} onChange={handleChange} />
+            <Input placeholder="No Telepon Kantor" name="noTeleponKantor" value={formData.noTeleponKantor} onChange={handleChange} type="tel" />
+            <Input placeholder="Email Perusahaan" name="emailPerusahaan" value={formData.emailPerusahaan} onChange={handleChange} type="email" />
+          </div>
+
+          {/* Airlines & Flight */}
+          <div className="grid grid-cols-3 gap-4">
+            <Input placeholder="Nama Maskapai" name="namaMaskapai" value={formData.namaMaskapai} onChange={handleChange} />
+            <Input placeholder="No Penerbangan" name="noPenerbangan" value={formData.noPenerbangan} onChange={handleChange} />
+            <Input placeholder="No Kursi" name="noKursi" value={formData.noKursi} onChange={handleChange} />
+          </div>
+
+          {/* Travel Date & Time */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Tanggal Perjalanan *</label>
+              <Input type="date" name="tanggalPerjalanan" value={formData.tanggalPerjalanan} onChange={handleChange} required />
+            </div>
+            <Input placeholder="Jam Perjalanan (HH:MM)" name="jamPerjalanan" value={formData.jamPerjalanan} onChange={handleChange} type="time" />
+          </div>
+
           {/* Patient Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Patient Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="patientName" className="text-sm font-medium">
-                  Patient Name *
-                </label>
-                <Input
-                  id="patientName"
-                  name="patientName"
-                  placeholder="Full name"
-                  value={formData.patientName}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                />
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-4">Informasi Pasien</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Nama Pasien *</label>
+                <Input placeholder="Full Name" name="namaPasien" value={formData.namaPasien} onChange={handleChange} required />
               </div>
-
-              <div className="space-y-2">
-                <label htmlFor="patientAge" className="text-sm font-medium">
-                  Patient Age
-                </label>
-                <Input
-                  id="patientAge"
-                  name="patientAge"
-                  type="number"
-                  placeholder="Age in years"
-                  value={formData.patientAge}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="patientCondition" className="text-sm font-medium">
-                Medical Condition
-              </label>
-              <Textarea
-                id="patientCondition"
-                name="patientCondition"
-                placeholder="Describe the patient's condition"
-                value={formData.patientCondition}
-                onChange={handleChange}
-                rows={3}
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
-          {/* Location Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Location Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="location" className="text-sm font-medium">
-                  Current Location *
-                </label>
-                <Input
-                  id="location"
-                  name="location"
-                  placeholder="Patient's current location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="destination" className="text-sm font-medium">
-                  Destination Hospital
-                </label>
-                <Input
-                  id="destination"
-                  name="destination"
-                  placeholder="Target hospital or facility"
-                  value={formData.destination}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Request Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Request Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="priorityLevel" className="text-sm font-medium">
-                  Priority Level
-                </label>
-                <Select
-                  value={formData.priorityLevel}
-                  onValueChange={(value) => handleSelectChange('priorityLevel', value)}
-                >
+              <div>
+                <label className="block text-sm font-medium mb-1">Jenis Kelamin</label>
+                <Select value={formData.jenisKelamin} onValueChange={(val) => handleSelectChange('jenisKelamin', val)}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Pilih jenis kelamin" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
+                    <SelectItem value="lakiLaki">Laki-laki</SelectItem>
+                    <SelectItem value="Perempuan">Perempuan</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              <Input type="date" placeholder="Tanggal Lahir" name="tanggalLahir" value={formData.tanggalLahir} onChange={handleChange} />
+            </div>
+          </div>
 
-              {isAdmin && (
-                <div className="space-y-2">
-                  <label htmlFor="status" className="text-sm font-medium">
-                    Status
+          {/* Vital Signs */}
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-4">Tanda-tanda Vital</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <Input placeholder="Tekanan Darah (mmHg)" name="tekananDarah" value={formData.tekananDarah} onChange={handleChange} />
+              <Input placeholder="Nadi (bpm)" name="nadi" value={formData.nadi} onChange={handleChange} />
+              <Input placeholder="Frekuensi Pernafasan (/min)" name="frekuensiPernafasan" value={formData.frekuensiPernafasan} onChange={handleChange} />
+              <Input placeholder="Saturasi Oksigen (%)" name="saturasiOksigen" value={formData.saturasiOksigen} onChange={handleChange} />
+              <Input placeholder="Tingkat Kesadaran" name="tingkatKesadaran" value={formData.tingkatKesadaran} onChange={handleChange} />
+              <div>
+                <Select value={formData.oksigen} onValueChange={(val) => handleSelectChange('oksigen', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Oksigen?" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ya">Ya</SelectItem>
+                    <SelectItem value="tidak">Tidak</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Select value={formData.posisiPasien} onValueChange={(val) => handleSelectChange('posisiPasien', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Posisi Pasien" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="duduk">Duduk</SelectItem>
+                    <SelectItem value="berbaring">Berbaring</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Companions */}
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-4">Pendamping</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <Input type="number" placeholder="Jumlah Pendamping" name="jumlahPendamping" value={formData.jumlahPendamping} onChange={handleChange} />
+              <div>
+                <Select value={formData.hubunganPasien} onValueChange={(val) => handleSelectChange('hubunganPasien', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Hubungan dengan Pasien" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Keluarga">Keluarga</SelectItem>
+                    <SelectItem value="Dokter">Dokter</SelectItem>
+                    <SelectItem value="Perawat">Perawat</SelectItem>
+                    <SelectItem value="Lainnya">Lainnya</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Input placeholder="Nama Pendamping" name="namaPendamping" value={formData.namaPendamping} onChange={handleChange} />
+              <Input placeholder="No Telepon Pendamping" name="noTeleponPendamping" value={formData.noTeleponPendamping} onChange={handleChange} type="tel" />
+              <Input placeholder="No Telepon Keluarga" name="noTeleponKeluarga" value={formData.noTeleponKeluarga} onChange={handleChange} type="tel" />
+            </div>
+          </div>
+
+          {/* Documents Upload */}
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-4">Dokumen</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {Object.keys(files).map((docType) => (
+                <div key={docType}>
+                  <label className="block text-sm font-medium mb-2 capitalize">
+                    {docType.replace(/([A-Z])/g, ' $1').trim()}
                   </label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => handleSelectChange('status', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="in_transit">In Transit</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.pdf,.webp"
+                      onChange={(e) => handleFileChange(docType, e.target.files?.[0] || null)}
+                      className="text-sm"
+                    />
+                    {files[docType as keyof typeof files] && (
+                      <Upload className="h-4 w-4 text-green-600" />
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="medicalNotes" className="text-sm font-medium">
-                Medical Notes
-              </label>
-              <Textarea
-                id="medicalNotes"
-                name="medicalNotes"
-                placeholder="Additional medical information or special requirements"
-                value={formData.medicalNotes}
-                onChange={handleChange}
-                rows={3}
-                disabled={isLoading}
-              />
+              ))}
             </div>
           </div>
 
-          {/* Contact Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Contact Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="contactPerson" className="text-sm font-medium">
-                  Contact Person
-                </label>
-                <Input
-                  id="contactPerson"
-                  name="contactPerson"
-                  placeholder="Name of contact person"
-                  value={formData.contactPerson}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="contactPhone" className="text-sm font-medium">
-                  Contact Phone
-                </label>
-                <Input
-                  id="contactPhone"
-                  name="contactPhone"
-                  type="tel"
-                  placeholder="+1 (555) 123-4567"
-                  value={formData.contactPhone}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
+          {/* Status */}
+          {isAdmin && (
+            <div className="border-t pt-4">
+              <label className="block text-sm font-medium mb-1">Status</label>
+              <Select value={formData.status} onValueChange={(val) => handleSelectChange('status', val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="valid">Valid</SelectItem>
+                  <SelectItem value="reviewed">Reviewed</SelectItem>
+                  <SelectItem value="canceled">Canceled</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </div>
+          )}
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading
-              ? 'Processing...'
-              : initialData
-                ? 'Update Request'
-                : 'Create Request'}
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? 'Saving...' : 'Save Evacuation Request'}
           </Button>
         </form>
       </CardContent>
