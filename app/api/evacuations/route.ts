@@ -72,7 +72,18 @@ export async function POST(request: NextRequest) {
     const namaMaskapai = formData.get('namaMaskapai');
     const noPenerbangan = formData.get('noPenerbangan');
     const noKursi = formData.get('noKursi');
-
+    console.log('Received form data:', {
+      jenisLayanan,
+      namaPasien,
+      jenisKelamin,
+      tanggalLahir,
+      tanggalPerjalanan,
+      jamPerjalanan,
+      jenisPesawat,
+      namaMaskapai,
+      noPenerbangan,
+      noKursi,
+    });
     if (!namaPasien || !tanggalPerjalanan) {
       return NextResponse.json(
         { error: 'Patient name and travel date are required' },

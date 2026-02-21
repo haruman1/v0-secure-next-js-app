@@ -4,7 +4,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, CheckCircle2, Upload } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -66,7 +72,7 @@ export function EvacuationForm({
   const [success, setSuccess] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -84,15 +90,18 @@ export function EvacuationForm({
     e.preventDefault();
     setError('');
     setSuccess(false);
-
-    if (!formData.namaPasien || !formData.tanggalPerjalanan) {
-      setError('Patient name and travel date are required');
+    console.log('Submitting form with data:', formData);
+    if (!formData.namaPasien) {
+      setError('Patient name is required');
       return;
     }
-
+    if (!formData.tanggalPerjalanan) {
+      setError('Travel date is required');
+      return;
+    }
     try {
       const submitFormData = new FormData();
-      
+
       // Add form fields
       Object.entries(formData).forEach(([key, value]) => {
         submitFormData.append(key, String(value || ''));
@@ -156,7 +165,9 @@ export function EvacuationForm({
     <Card>
       <CardHeader>
         <CardTitle>
-          {initialData ? 'Edit Air Medical Evacuation' : 'Create Air Medical Evacuation Request'}
+          {initialData
+            ? 'Edit Air Medical Evacuation'
+            : 'Create Air Medical Evacuation Request'}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -180,20 +191,34 @@ export function EvacuationForm({
           {/* Service Type & Aircraft */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Jenis Layanan</label>
-              <Select value={formData.jenisLayanan} onValueChange={(val) => handleSelectChange('jenisLayanan', val)}>
+              <label className="block text-sm font-medium mb-1">
+                Jenis Layanan
+              </label>
+              <Select
+                value={formData.jenisLayanan}
+                onValueChange={(val) => handleSelectChange('jenisLayanan', val)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih jenis layanan" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Keberangkatan">Keberangkatan (Departure)</SelectItem>
-                  <SelectItem value="Kedatangan">Kedatangan (Arrival)</SelectItem>
+                  <SelectItem value="Keberangkatan">
+                    Keberangkatan (Departure)
+                  </SelectItem>
+                  <SelectItem value="Kedatangan">
+                    Kedatangan (Arrival)
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Jenis Pesawat</label>
-              <Select value={formData.jenisPesawat} onValueChange={(val) => handleSelectChange('jenisPesawat', val)}>
+              <label className="block text-sm font-medium mb-1">
+                Jenis Pesawat
+              </label>
+              <Select
+                value={formData.jenisPesawat}
+                onValueChange={(val) => handleSelectChange('jenisPesawat', val)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih jenis pesawat" />
                 </SelectTrigger>
@@ -207,26 +232,77 @@ export function EvacuationForm({
 
           {/* Ground Handling & Company */}
           <div className="grid grid-cols-2 gap-4">
-            <Input placeholder="Nama Ground Handling" name="namaGroundhandling" value={formData.namaGroundhandling} onChange={handleChange} />
-            <Input placeholder="Nama Petugas" name="namaPetugas" value={formData.namaPetugas} onChange={handleChange} />
-            <Input placeholder="No Telepon Kantor" name="noTeleponKantor" value={formData.noTeleponKantor} onChange={handleChange} type="tel" />
-            <Input placeholder="Email Perusahaan" name="emailPerusahaan" value={formData.emailPerusahaan} onChange={handleChange} type="email" />
+            <Input
+              placeholder="Nama Ground Handling"
+              name="namaGroundhandling"
+              value={formData.namaGroundhandling}
+              onChange={handleChange}
+            />
+            <Input
+              placeholder="Nama Petugas"
+              name="namaPetugas"
+              value={formData.namaPetugas}
+              onChange={handleChange}
+            />
+            <Input
+              placeholder="No Telepon Kantor"
+              name="noTeleponKantor"
+              value={formData.noTeleponKantor}
+              onChange={handleChange}
+              type="tel"
+            />
+            <Input
+              placeholder="Email Perusahaan"
+              name="emailPerusahaan"
+              value={formData.emailPerusahaan}
+              onChange={handleChange}
+              type="email"
+            />
           </div>
 
           {/* Airlines & Flight */}
           <div className="grid grid-cols-3 gap-4">
-            <Input placeholder="Nama Maskapai" name="namaMaskapai" value={formData.namaMaskapai} onChange={handleChange} />
-            <Input placeholder="No Penerbangan" name="noPenerbangan" value={formData.noPenerbangan} onChange={handleChange} />
-            <Input placeholder="No Kursi" name="noKursi" value={formData.noKursi} onChange={handleChange} />
+            <Input
+              placeholder="Nama Maskapai"
+              name="namaMaskapai"
+              value={formData.namaMaskapai}
+              onChange={handleChange}
+            />
+            <Input
+              placeholder="No Penerbangan"
+              name="noPenerbangan"
+              value={formData.noPenerbangan}
+              onChange={handleChange}
+            />
+            <Input
+              placeholder="No Kursi"
+              name="noKursi"
+              value={formData.noKursi}
+              onChange={handleChange}
+            />
           </div>
 
           {/* Travel Date & Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Tanggal Perjalanan *</label>
-              <Input type="date" name="tanggalPerjalanan" value={formData.tanggalPerjalanan} onChange={handleChange} required />
+              <label className="block text-sm font-medium mb-1">
+                Tanggal Perjalanan *
+              </label>
+              <Input
+                type="date"
+                name="tanggalPerjalanan"
+                value={formData.tanggalPerjalanan}
+                onChange={handleChange}
+                required
+              />
             </div>
-            <Input placeholder="Jam Perjalanan (HH:MM)" name="jamPerjalanan" value={formData.jamPerjalanan} onChange={handleChange} type="time" />
+            <Input
+              placeholder="Jam Perjalanan (HH:MM)"
+              name="jamPerjalanan"
+              value={formData.jamPerjalanan}
+              onChange={handleChange}
+              type="time"
+            />
           </div>
 
           {/* Patient Information */}
@@ -234,12 +310,27 @@ export function EvacuationForm({
             <h3 className="font-semibold mb-4">Informasi Pasien</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Nama Pasien *</label>
-                <Input placeholder="Full Name" name="namaPasien" value={formData.namaPasien} onChange={handleChange} required />
+                <label className="block text-sm font-medium mb-1">
+                  Nama Pasien *
+                </label>
+                <Input
+                  placeholder="Full Name"
+                  name="namaPasien"
+                  value={formData.namaPasien}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Jenis Kelamin</label>
-                <Select value={formData.jenisKelamin} onValueChange={(val) => handleSelectChange('jenisKelamin', val)}>
+                <label className="block text-sm font-medium mb-1">
+                  Jenis Kelamin
+                </label>
+                <Select
+                  value={formData.jenisKelamin}
+                  onValueChange={(val) =>
+                    handleSelectChange('jenisKelamin', val)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih jenis kelamin" />
                   </SelectTrigger>
@@ -249,7 +340,13 @@ export function EvacuationForm({
                   </SelectContent>
                 </Select>
               </div>
-              <Input type="date" placeholder="Tanggal Lahir" name="tanggalLahir" value={formData.tanggalLahir} onChange={handleChange} />
+              <Input
+                type="date"
+                placeholder="Tanggal Lahir"
+                name="tanggalLahir"
+                value={formData.tanggalLahir}
+                onChange={handleChange}
+              />
             </div>
           </div>
 
@@ -257,13 +354,41 @@ export function EvacuationForm({
           <div className="border-t pt-4">
             <h3 className="font-semibold mb-4">Tanda-tanda Vital</h3>
             <div className="grid grid-cols-3 gap-4">
-              <Input placeholder="Tekanan Darah (mmHg)" name="tekananDarah" value={formData.tekananDarah} onChange={handleChange} />
-              <Input placeholder="Nadi (bpm)" name="nadi" value={formData.nadi} onChange={handleChange} />
-              <Input placeholder="Frekuensi Pernafasan (/min)" name="frekuensiPernafasan" value={formData.frekuensiPernafasan} onChange={handleChange} />
-              <Input placeholder="Saturasi Oksigen (%)" name="saturasiOksigen" value={formData.saturasiOksigen} onChange={handleChange} />
-              <Input placeholder="Tingkat Kesadaran" name="tingkatKesadaran" value={formData.tingkatKesadaran} onChange={handleChange} />
+              <Input
+                placeholder="Tekanan Darah (mmHg)"
+                name="tekananDarah"
+                value={formData.tekananDarah}
+                onChange={handleChange}
+              />
+              <Input
+                placeholder="Nadi (bpm)"
+                name="nadi"
+                value={formData.nadi}
+                onChange={handleChange}
+              />
+              <Input
+                placeholder="Frekuensi Pernafasan (/min)"
+                name="frekuensiPernafasan"
+                value={formData.frekuensiPernafasan}
+                onChange={handleChange}
+              />
+              <Input
+                placeholder="Saturasi Oksigen (%)"
+                name="saturasiOksigen"
+                value={formData.saturasiOksigen}
+                onChange={handleChange}
+              />
+              <Input
+                placeholder="Tingkat Kesadaran"
+                name="tingkatKesadaran"
+                value={formData.tingkatKesadaran}
+                onChange={handleChange}
+              />
               <div>
-                <Select value={formData.oksigen} onValueChange={(val) => handleSelectChange('oksigen', val)}>
+                <Select
+                  value={formData.oksigen}
+                  onValueChange={(val) => handleSelectChange('oksigen', val)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Oksigen?" />
                   </SelectTrigger>
@@ -274,7 +399,12 @@ export function EvacuationForm({
                 </Select>
               </div>
               <div>
-                <Select value={formData.posisiPasien} onValueChange={(val) => handleSelectChange('posisiPasien', val)}>
+                <Select
+                  value={formData.posisiPasien}
+                  onValueChange={(val) =>
+                    handleSelectChange('posisiPasien', val)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Posisi Pasien" />
                   </SelectTrigger>
@@ -291,9 +421,20 @@ export function EvacuationForm({
           <div className="border-t pt-4">
             <h3 className="font-semibold mb-4">Pendamping</h3>
             <div className="grid grid-cols-2 gap-4">
-              <Input type="number" placeholder="Jumlah Pendamping" name="jumlahPendamping" value={formData.jumlahPendamping} onChange={handleChange} />
+              <Input
+                type="number"
+                placeholder="Jumlah Pendamping"
+                name="jumlahPendamping"
+                value={formData.jumlahPendamping}
+                onChange={handleChange}
+              />
               <div>
-                <Select value={formData.hubunganPasien} onValueChange={(val) => handleSelectChange('hubunganPasien', val)}>
+                <Select
+                  value={formData.hubunganPasien}
+                  onValueChange={(val) =>
+                    handleSelectChange('hubunganPasien', val)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Hubungan dengan Pasien" />
                   </SelectTrigger>
@@ -305,9 +446,26 @@ export function EvacuationForm({
                   </SelectContent>
                 </Select>
               </div>
-              <Input placeholder="Nama Pendamping" name="namaPendamping" value={formData.namaPendamping} onChange={handleChange} />
-              <Input placeholder="No Telepon Pendamping" name="noTeleponPendamping" value={formData.noTeleponPendamping} onChange={handleChange} type="tel" />
-              <Input placeholder="No Telepon Keluarga" name="noTeleponKeluarga" value={formData.noTeleponKeluarga} onChange={handleChange} type="tel" />
+              <Input
+                placeholder="Nama Pendamping"
+                name="namaPendamping"
+                value={formData.namaPendamping}
+                onChange={handleChange}
+              />
+              <Input
+                placeholder="No Telepon Pendamping"
+                name="noTeleponPendamping"
+                value={formData.noTeleponPendamping}
+                onChange={handleChange}
+                type="tel"
+              />
+              <Input
+                placeholder="No Telepon Keluarga"
+                name="noTeleponKeluarga"
+                value={formData.noTeleponKeluarga}
+                onChange={handleChange}
+                type="tel"
+              />
             </div>
           </div>
 
@@ -324,7 +482,9 @@ export function EvacuationForm({
                     <Input
                       type="file"
                       accept=".jpg,.jpeg,.png,.pdf,.webp"
-                      onChange={(e) => handleFileChange(docType, e.target.files?.[0] || null)}
+                      onChange={(e) =>
+                        handleFileChange(docType, e.target.files?.[0] || null)
+                      }
                       className="text-sm"
                     />
                     {files[docType as keyof typeof files] && (
@@ -340,7 +500,10 @@ export function EvacuationForm({
           {isAdmin && (
             <div className="border-t pt-4">
               <label className="block text-sm font-medium mb-1">Status</label>
-              <Select value={formData.status} onValueChange={(val) => handleSelectChange('status', val)}>
+              <Select
+                value={formData.status}
+                onValueChange={(val) => handleSelectChange('status', val)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih status" />
                 </SelectTrigger>

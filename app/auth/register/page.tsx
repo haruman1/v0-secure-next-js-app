@@ -5,10 +5,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useAuth } from '@/app/context/auth-context';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -67,9 +74,17 @@ export default function RegisterPage() {
         formData.email,
         formData.password,
         formData.fullName,
-        formData.phone
+        formData.phone,
       );
-      router.push('/dashboard');
+      toast.success(
+        'Account created successfully! Redirecting to Login page...',
+        {
+          duration: 4000,
+        },
+      );
+      setTimeout(() => {
+        router.push('/auth/login');
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -155,15 +170,21 @@ export default function RegisterPage() {
               />
               <div className="space-y-1 text-xs mt-2">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className={`h-3 w-3 ${validations.length ? 'text-green-600' : 'text-muted-foreground'}`} />
+                  <CheckCircle2
+                    className={`h-3 w-3 ${validations.length ? 'text-green-600' : 'text-muted-foreground'}`}
+                  />
                   <span>At least 8 characters</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className={`h-3 w-3 ${validations.hasNumber ? 'text-green-600' : 'text-muted-foreground'}`} />
+                  <CheckCircle2
+                    className={`h-3 w-3 ${validations.hasNumber ? 'text-green-600' : 'text-muted-foreground'}`}
+                  />
                   <span>Contains a number</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className={`h-3 w-3 ${validations.hasUppercase ? 'text-green-600' : 'text-muted-foreground'}`} />
+                  <CheckCircle2
+                    className={`h-3 w-3 ${validations.hasUppercase ? 'text-green-600' : 'text-muted-foreground'}`}
+                  />
                   <span>Contains uppercase letter</span>
                 </div>
               </div>
@@ -185,17 +206,16 @@ export default function RegisterPage() {
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Creating account...' : 'Create Account'}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-primary hover:underline font-medium">
+              <Link
+                href="/auth/login"
+                className="text-primary hover:underline font-medium"
+              >
                 Sign in
               </Link>
             </p>

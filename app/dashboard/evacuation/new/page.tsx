@@ -8,28 +8,18 @@ export default function NewEvacuationPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (form: FormData) => {
     setIsLoading(true);
 
     try {
-      const form = new FormData();
+      // DEBUG: lihat isi FormData asli
+      for (const [key, value] of form.entries()) {
+        console.log('SEND:', key, value);
+      }
 
-      // loop semua field text
-      Object.entries(data).forEach(([key, value]) => {
-        if (value instanceof File) {
-          form.append(key, value); // file langsung append
-        } else if (Array.isArray(value)) {
-          // kalau multiple file / multiple value
-          value.forEach((v) => form.append(key, v));
-        } else if (value !== null && value !== undefined) {
-          form.append(key, String(value));
-        }
-      });
-      console.log('FormData entries: ', form);
       const response = await fetch('/api/evacuations', {
         method: 'POST',
-        body: form, // ✅ kirim FormData
-        // ❗ JANGAN SET HEADER CONTENT-TYPE
+        body: form, // ✅ langsung kirim
       });
 
       if (!response.ok) {
@@ -38,10 +28,7 @@ export default function NewEvacuationPage() {
       }
 
       const res = await response.json();
-
       router.push(`/dashboard/evacuation/${res.id}`);
-    } catch (error) {
-      throw error;
     } finally {
       setIsLoading(false);
     }

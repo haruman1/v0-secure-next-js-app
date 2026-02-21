@@ -3,7 +3,7 @@
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id CHAR(36) NOT NULL DEFAULT (UUID()) PRIMARY KEY,
   email VARCHAR(255) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   full_name VARCHAR(255) NOT NULL,
@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Air Medical Evacuation table (Pembidangan Medis Udara)
 CREATE TABLE IF NOT EXISTS air_medical_evacuation (
-  id VARCHAR(36) NOT NULL DEFAULT (UUID()) PRIMARY KEY,
-  user_id INT,
+  id CHAR(36) NOT NULL DEFAULT (UUID()) PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
   jenisLayanan ENUM('Keberangkatan','Kedatangan'),
   jenisPesawat ENUM('Komersial','jetPribadi'),
   namaGroundhandling VARCHAR(255),
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS air_medical_evacuation (
   dokumentPetugasMedis VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_user_id (user_id),
   INDEX idx_status (status),
   INDEX idx_tanggal_perjalanan (tanggalPerjalanan)
@@ -66,8 +66,8 @@ CREATE TABLE IF NOT EXISTS air_medical_evacuation (
 
 -- Password Reset Tokens table
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
+  id CHAR(36) NOT NULL DEFAULT (UUID()) PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
   token VARCHAR(255) NOT NULL UNIQUE,
   token_type ENUM('email_verification', 'otp') NOT NULL,
   otp_code VARCHAR(6),
@@ -82,8 +82,8 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
 
 -- Audit Logs table
 CREATE TABLE IF NOT EXISTS audit_logs (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT,
+  id CHAR(36) NOT NULL DEFAULT (UUID()) PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
   action VARCHAR(255) NOT NULL,
   entity_type VARCHAR(100),
   entity_id VARCHAR(36),
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   ip_address VARCHAR(45),
   user_agent TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_user_id (user_id),
   INDEX idx_action (action),
   INDEX idx_created_at (created_at)
@@ -99,8 +99,8 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 -- Sessions table
 CREATE TABLE IF NOT EXISTS sessions (
-  id VARCHAR(255) PRIMARY KEY,
-  user_id INT NOT NULL,
+  id CHAR(36) NOT NULL DEFAULT (UUID()) PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
   expires_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,

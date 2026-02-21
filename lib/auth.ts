@@ -23,7 +23,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function verifyPassword(
   password: string,
-  hash: string
+  hash: string,
 ): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
@@ -40,7 +40,7 @@ export async function sendPasswordResetEmail(
   email: string,
   resetToken: string,
   resetType: 'email_verification' | 'otp',
-  otp?: string
+  otp?: string,
 ) {
   const resetLink = `${process.env.APP_URL}/auth/reset-password?token=${resetToken}`;
 
@@ -72,15 +72,17 @@ export async function sendPasswordResetEmail(
 
 export async function createPasswordResetToken(
   userId: number,
-  type: 'email_verification' | 'otp'
+  type: 'email_verification' | 'otp',
 ): Promise<{ token: string; otp?: string }> {
   const token = generateToken();
   const otp = type === 'otp' ? generateOTP() : undefined;
-  const expiresAt = new Date(Date.now() + (type === 'otp' ? 5 * 60 * 1000 : 60 * 60 * 1000));
+  const expiresAt = new Date(
+    Date.now() + (type === 'otp' ? 5 * 60 * 1000 : 60 * 60 * 1000),
+  );
 
   await query(
     'INSERT INTO password_reset_tokens (user_id, token, token_type, otp_code, expires_at) VALUES (?, ?, ?, ?, ?)',
-    [userId, token, type, otp || null, expiresAt]
+    [userId, token, type, otp || null, expiresAt],
   );
 
   return { token, otp };
@@ -89,7 +91,7 @@ export async function createPasswordResetToken(
 export async function validateResetToken(token: string) {
   const results = await query(
     'SELECT * FROM password_reset_tokens WHERE token = ? AND used = FALSE AND expires_at > NOW()',
-    [token]
+    [token],
   );
 
   if (Array.isArray(results) && results.length > 0) {
@@ -102,6 +104,9 @@ export async function resetPassword(token: string, newPassword: string) {
   const resetRecord = await validateResetToken(token);
   if (!resetRecord) return false;
 
+  // Type assertion to RowDataPacket for correct property access
+  const record = resetRecord as import('mysql2').RowDataPacket;
+
   const passwordHash = await hashPassword(newPassword);
   const conn = await require('./db').getConnection();
 
@@ -110,12 +115,13 @@ export async function resetPassword(token: string, newPassword: string) {
 
     await conn.execute('UPDATE users SET password_hash = ? WHERE id = ?', [
       passwordHash,
-      resetRecord.user_id,
+      record.user_id,
     ]);
 
-    await conn.execute('UPDATE password_reset_tokens SET used = TRUE WHERE id = ?', [
-      resetRecord.id,
-    ]);
+    await conn.execute(
+      'UPDATE password_reset_tokens SET used = TRUE WHERE id = ?',
+      [record.id],
+    );
 
     await conn.commit();
     return true;
@@ -128,13 +134,13 @@ export async function resetPassword(token: string, newPassword: string) {
 }
 
 export async function logAuditEvent(
-  userId: number | null,
+  userId: string | null,
   action: string,
   entityType?: string,
-  entityId?: number,
+  entityId?: string,
   details?: Record<string, unknown>,
   ipAddress?: string,
-  userAgent?: string
+  userAgent?: string,
 ) {
   await query(
     'INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -146,6 +152,6 @@ export async function logAuditEvent(
       details ? JSON.stringify(details) : null,
       ipAddress || null,
       userAgent || null,
-    ]
+    ],
   );
 }

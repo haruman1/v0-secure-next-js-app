@@ -4,7 +4,13 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/app/context/auth-context';
 import { EvacuationForm } from '../form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, ArrowLeft, Trash2 } from 'lucide-react';
@@ -55,7 +61,9 @@ export default function EvacuationDetailPage() {
       const data = await response.json();
       setEvacuation(data.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load evacuation');
+      setError(
+        err instanceof Error ? err.message : 'Failed to load evacuation',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -100,7 +108,9 @@ export default function EvacuationDetailPage() {
         throw new Error('Failed to delete');
       }
 
-      router.push(user?.role === 'admin' ? '/dashboard/admin' : '/dashboard/user');
+      router.push(
+        user?.role === 'admin' ? '/dashboard/admin' : '/dashboard/user',
+      );
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete');
     } finally {
@@ -163,16 +173,21 @@ export default function EvacuationDetailPage() {
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle className="text-2xl">{evacuation.patient_name}</CardTitle>
+                <CardTitle className="text-2xl">
+                  {evacuation.namaPasien}
+                </CardTitle>
                 <CardDescription className="mt-2">
-                  Request #E{evacuation.id} - {new Date(evacuation.request_date).toLocaleDateString()}
+                  Request #E{evacuation.id} -{' '}
+                  {new Date(evacuation.tanggalPerjalanan).toLocaleDateString()}
                 </CardDescription>
               </div>
               <div className="flex gap-2">
-                <Badge className={priorityColors[evacuation.priority_level] || 'bg-gray-100 text-gray-800'}>
-                  {evacuation.priority_level.charAt(0).toUpperCase() + evacuation.priority_level.slice(1)}
-                </Badge>
-                <Badge className={statusColors[evacuation.status] || 'bg-gray-100 text-gray-800'}>
+                <Badge
+                  className={
+                    statusColors[evacuation.status] ||
+                    'bg-gray-100 text-gray-800'
+                  }
+                >
                   {evacuation.status.replace('_', ' ')}
                 </Badge>
               </div>
@@ -181,32 +196,46 @@ export default function EvacuationDetailPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Current Location</p>
-                <p className="text-foreground font-medium">{evacuation.location}</p>
+                <p className="text-sm text-muted-foreground">
+                  Current Location
+                </p>
+                <p className="text-foreground font-medium">
+                  {evacuation.location}
+                </p>
               </div>
               {evacuation.destination && (
                 <div>
                   <p className="text-sm text-muted-foreground">Destination</p>
-                  <p className="text-foreground font-medium">{evacuation.destination}</p>
+                  <p className="text-foreground font-medium">
+                    {evacuation.destination}
+                  </p>
                 </div>
               )}
               {evacuation.patient_age && (
                 <div>
                   <p className="text-sm text-muted-foreground">Patient Age</p>
-                  <p className="text-foreground font-medium">{evacuation.patient_age} years</p>
+                  <p className="text-foreground font-medium">
+                    {evacuation.patient_age} years
+                  </p>
                 </div>
               )}
               {evacuation.contact_phone && (
                 <div>
                   <p className="text-sm text-muted-foreground">Contact Phone</p>
-                  <p className="text-foreground font-medium">{evacuation.contact_phone}</p>
+                  <p className="text-foreground font-medium">
+                    {evacuation.contact_phone}
+                  </p>
                 </div>
               )}
             </div>
             {evacuation.patient_condition && (
               <div>
-                <p className="text-sm text-muted-foreground">Medical Condition</p>
-                <p className="text-foreground">{evacuation.patient_condition}</p>
+                <p className="text-sm text-muted-foreground">
+                  Medical Condition
+                </p>
+                <p className="text-foreground">
+                  {evacuation.patient_condition}
+                </p>
               </div>
             )}
             {evacuation.medical_notes && (
