@@ -10,20 +10,20 @@ export async function POST(request: NextRequest) {
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Find user
     const results = await query(
       'SELECT id, password_hash, full_name, role, is_active FROM users WHERE email = ?',
-      [email]
+      [email],
     );
 
     if (!Array.isArray(results) || results.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
+        { error: 'Invalid credentials', message: 'loginFailedDesc' },
+        { status: 401 },
       );
     }
 
@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
 
     if (!user.is_active) {
       return NextResponse.json(
-        { error: 'Account is inactive' },
-        { status: 403 }
+        { error: 'Account is inactive', message: 'loginFailedDesc' },
+        { status: 403 },
       );
     }
 
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     if (!isValid) {
       const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
       const userAgent = request.headers.get('user-agent') || '';
-      
+
       await logAuditEvent(
         null,
         'FAILED_LOGIN_ATTEMPT',
@@ -49,25 +49,22 @@ export async function POST(request: NextRequest) {
         null,
         { email, reason: 'invalid_password' },
         ipAddress,
-        userAgent
+        userAgent,
       );
 
       return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
+        { error: 'Invalid credentials', message: 'loginFailedDesc' },
+        { status: 401 },
       );
     }
 
     // Update last login
-    await query(
-      'UPDATE users SET last_login = NOW() WHERE id = ?',
-      [user.id]
-    );
+    await query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
 
     // Log audit event
     const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = request.headers.get('user-agent') || '';
-    
+
     await logAuditEvent(
       user.id,
       'USER_LOGIN',
@@ -75,7 +72,7 @@ export async function POST(request: NextRequest) {
       user.id,
       {},
       ipAddress,
-      userAgent
+      userAgent,
     );
 
     // Create session
@@ -95,7 +92,7 @@ export async function POST(request: NextRequest) {
     console.error('Login error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

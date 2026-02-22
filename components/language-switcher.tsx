@@ -1,18 +1,35 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useLanguage } from '@/app/context/language-context';
 import { Button } from '@/components/ui/button';
+import { Globe } from 'lucide-react';
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
-} from '@/components/ui/dropdown-menu';
-import { Globe } from 'lucide-react';
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 export function LanguageSwitcher() {
-  const { language, setLanguage, t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
+
+  // ✅ penting: tunggu client mount dulu
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // ✅ jangan render dynamic text saat SSR
+  if (!mounted) {
+    return (
+      <Button variant="outline" size="sm" className="gap-2">
+        <Globe className="h-4 w-4" />
+        <span className="hidden sm:inline">...</span>
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu>

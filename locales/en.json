@@ -34,13 +34,19 @@
     "fullName": "Full Name",
     "email": "Email",
     "password": "Password",
+    "passwordPlaceholder": "Enter your password",
     "confirmPassword": "Confirm Password",
+
     "phone": "Phone Number",
+    "phonePlaceholder": "+1 (555) 123-4567",
     "loginSuccess": "Login Successful",
     "login": "Login",
     "loggingIn": "Logging in",
     "registering": "Registering",
     "loginSuccessDesc": "Welcome back! Redirecting to your dashboard...",
+    "loginFailed": "Login Failed",
+    "loginFailedDesc": "Your email or password is incorrect. Please try again.",
+    "loginDescription": "Welcome, please login to continue",
     "registrationSuccess": "Registration Successful",
     "registrationSuccessDesc": "Your account has been created successfully. Redirecting to dashboard...",
     "invalidCredentials": "Invalid email or password",
@@ -189,7 +195,7 @@
     "details": "Details"
   },
   "messages": {
-    "confirmDelete": "Are you sure you want to delete thhttps://github.com/haruman1/v0-secure-next-js-app/pull/1/conflict?name=locales%252Fen.json&base_oid=b9a70daba9295b45c350fc9bd0feb848a543935b&head_oid=1da33c7bc7c608c1e3379bb007ef03f0312eaf13is item?",
+    "confirmDelete": "Are you sure you want to delete This item?",
     "deleteSuccess": "Item deleted successfully",
     "updateSuccess": "Item updated successfully",
     "createSuccess": "Item created successfully",

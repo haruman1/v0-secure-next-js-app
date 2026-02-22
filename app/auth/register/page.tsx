@@ -120,7 +120,7 @@ export default function RegisterPage() {
               <Input
                 id="fullName"
                 name="fullName"
-                placeholder="John Doe"
+                placeholder={t('auth.fullName')}
                 value={formData.fullName}
                 onChange={handleChange}
                 required
@@ -136,7 +136,7 @@ export default function RegisterPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder={t('auth.email')}
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -152,7 +152,7 @@ export default function RegisterPage() {
                 id="phone"
                 name="phone"
                 type="tel"
-                placeholder="+1 (555) 123-4567"
+                placeholder={t('auth.phonePlaceholder')}
                 value={formData.phone}
                 onChange={handleChange}
                 disabled={isLoading}
@@ -167,7 +167,7 @@ export default function RegisterPage() {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Create a strong password"
+                placeholder={t('auth.passwordPlaceholder')}
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -175,15 +175,21 @@ export default function RegisterPage() {
               />
               <div className="space-y-1 text-xs mt-2">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className={`h-3 w-3 ${validations.length ? 'text-green-600' : 'text-muted-foreground'}`} />
+                  <CheckCircle2
+                    className={`h-3 w-3 ${validations.length ? 'text-green-600' : 'text-muted-foreground'}`}
+                  />
                   <span>{t('auth.atLeast8Chars')}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className={`h-3 w-3 ${validations.hasNumber ? 'text-green-600' : 'text-muted-foreground'}`} />
+                  <CheckCircle2
+                    className={`h-3 w-3 ${validations.hasNumber ? 'text-green-600' : 'text-muted-foreground'}`}
+                  />
                   <span>{t('auth.oneNumber')}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className={`h-3 w-3 ${validations.hasUppercase ? 'text-green-600' : 'text-muted-foreground'}`} />
+                  <CheckCircle2
+                    className={`h-3 w-3 ${validations.hasUppercase ? 'text-green-600' : 'text-muted-foreground'}`}
+                  />
                   <span>{t('auth.oneUppercase')}</span>
                 </div>
               </div>
@@ -197,7 +203,7 @@ export default function RegisterPage() {
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
-                placeholder="Confirm your password"
+                placeholder={t('auth.confirmPassword')}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
@@ -205,17 +211,16 @@ export default function RegisterPage() {
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? t('messages.pleaseWait') : t('auth.register')}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
               {t('auth.alreadyHaveAccount')}{' '}
-              <Link href="/auth/login" className="text-primary hover:underline font-medium">
+              <Link
+                href="/auth/login"
+                className="text-primary hover:underline font-medium"
+              >
                 {t('auth.login')}
               </Link>
             </p>

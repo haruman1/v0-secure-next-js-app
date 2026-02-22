@@ -115,7 +115,7 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? t('auth.login') : t('loggingIn')}
+              {isLoading ? t('auth.loggingIn') : t('auth.login')}
             </Button>
 
             <div className="relative">
@@ -130,12 +130,12 @@ export default function LoginPage() {
             </div>
 
             <p className="text-center text-sm text-muted-foreground">
-              {t('auth.noAccount')}{' '}
+              {t('auth.dontHaveAccount')}{' '}
               <Link
                 href="/auth/register"
                 className="text-primary hover:underline font-medium"
               >
-                {t('auth.signUp')}
+                {t('auth.register')}
               </Link>
             </p>
           </form>
