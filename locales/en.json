@@ -37,6 +37,9 @@
     "confirmPassword": "Confirm Password",
     "phone": "Phone Number",
     "loginSuccess": "Login Successful",
+    "login": "Login",
+    "loggingIn": "Logging in",
+    "registering": "Registering",
     "loginSuccessDesc": "Welcome back! Redirecting to your dashboard...",
     "registrationSuccess": "Registration Successful",
     "registrationSuccessDesc": "Your account has been created successfully. Redirecting to dashboard...",
@@ -186,7 +189,7 @@
     "details": "Details"
   },
   "messages": {
-    "confirmDelete": "Are you sure you want to delete this item?",
+    "confirmDelete": "Are you sure you want to delete thhttps://github.com/haruman1/v0-secure-next-js-app/pull/1/conflict?name=locales%252Fen.json&base_oid=b9a70daba9295b45c350fc9bd0feb848a543935b&head_oid=1da33c7bc7c608c1e3379bb007ef03f0312eaf13is item?",
     "deleteSuccess": "Item deleted successfully",
     "updateSuccess": "Item updated successfully",
     "createSuccess": "Item created successfully",

@@ -5,15 +5,21 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useAuth } from '@/app/context/auth-context';
 import { useLanguage } from '@/app/context/language-context';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Toaster } from '@/components/ui/toaster';
+import { LanguageProvider, useLanguage } from '@/app/context/language-context';
 import { LanguageSwitcher } from '@/components/language-switcher';
-
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +28,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,11 +40,19 @@ export default function LoginPage() {
       toast({
         title: t('auth.loginSuccess'),
         description: t('auth.loginSuccessDesc'),
-        variant: 'default',
+        variant: 'success',
       });
-      router.push('/dashboard');
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('messages.loadingError'));
+      setError(err instanceof Error ? err.message : 'Login failed');
+      toast({
+        title: t('auth.loginFailed'),
+        description:
+          err instanceof Error ? err.message : t('auth.loginFailedDesc'),
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +66,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">{t('auth.login')}</CardTitle>
-          <CardDescription>{t('evacuation.title')}</CardDescription>
+          <CardDescription>{t('auth.loginDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -70,7 +84,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder={t('auth.email')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -93,7 +107,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t('auth.password')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -101,12 +115,8 @@ export default function LoginPage() {
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? t('messages.pleaseWait') : t('auth.login')}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? t('auth.login') : t('loggingIn')}
             </Button>
 
             <div className="relative">
@@ -114,14 +124,19 @@ export default function LoginPage() {
                 <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-card text-muted-foreground">{t('auth.or')}</span>
+                <span className="px-2 bg-card text-muted-foreground">
+                  {t('auth.or')}
+                </span>
               </div>
             </div>
 
             <p className="text-center text-sm text-muted-foreground">
-              {t('auth.dontHaveAccount')}{' '}
-              <Link href="/auth/register" className="text-primary hover:underline font-medium">
-                {t('auth.register')}
+              {t('auth.noAccount')}{' '}
+              <Link
+                href="/auth/register"
+                className="text-primary hover:underline font-medium"
+              >
+                {t('auth.signUp')}
               </Link>
             </p>
           </form>

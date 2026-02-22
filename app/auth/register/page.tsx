@@ -5,7 +5,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useAuth } from '@/app/context/auth-context';
 import { useLanguage } from '@/app/context/language-context';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -73,7 +79,7 @@ export default function RegisterPage() {
         formData.email,
         formData.password,
         formData.fullName,
-        formData.phone
+        formData.phone,
       );
       toast({
         title: t('auth.registrationSuccess'),

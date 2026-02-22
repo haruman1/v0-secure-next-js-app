@@ -8,13 +8,18 @@ export default function NewEvacuationPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (form: FormData) => {
     setIsLoading(true);
+
     try {
+      // DEBUG: lihat isi FormData asli
+      for (const [key, value] of form.entries()) {
+        console.log('SEND:', key, value);
+      }
+
       const response = await fetch('/api/evacuations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: form, // ✅ langsung kirim
       });
 
       if (!response.ok) {
@@ -22,12 +27,8 @@ export default function NewEvacuationPage() {
         throw new Error(error.error || 'Failed to create evacuation');
       }
 
-      const data = await response.json();
-      setTimeout(() => {
-        router.push(`/dashboard/evacuation/${data.id}`);
-      }, 1000);
-    } catch (error) {
-      throw error;
+      const res = await response.json();
+      router.push(`/dashboard/evacuation/${res.id}`);
     } finally {
       setIsLoading(false);
     }
@@ -37,7 +38,9 @@ export default function NewEvacuationPage() {
     <div className="min-h-screen bg-background py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">New Evacuation Request</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            New Evacuation Request
+          </h1>
           <p className="text-muted-foreground mt-2">
             Submit a medical evacuation request by filling out the form below
           </p>

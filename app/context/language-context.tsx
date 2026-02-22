@@ -13,7 +13,9 @@ interface LanguageContextType {
   translations: typeof en;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined,
+);
 
 const translations = {
   en,
@@ -26,7 +28,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Load saved language from localStorage
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('language') as Language : null;
+    const saved =
+      typeof window !== 'undefined'
+        ? (localStorage.getItem('language') as Language)
+        : null;
     if (saved && (saved === 'en' || saved === 'id')) {
       setLanguage(saved);
     }

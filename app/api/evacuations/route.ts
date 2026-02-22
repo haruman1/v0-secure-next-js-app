@@ -12,10 +12,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user role
-    const userResults = await query(
-      'SELECT role FROM users WHERE id = ?',
-      [session.userId]
-    );
+    const userResults = await query('SELECT role FROM users WHERE id = ?', [
+      session.userId,
+    ]);
 
     if (!Array.isArray(userResults) || userResults.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -36,7 +35,7 @@ export async function GET(request: NextRequest) {
       // Users see only their own
       results = await query(
         `SELECT * FROM air_medical_evacuation WHERE user_id = ? ORDER BY created_at DESC`,
-        [session.userId]
+        [session.userId],
       );
     }
 
@@ -48,7 +47,7 @@ export async function GET(request: NextRequest) {
     console.error('Fetch evacuations error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -61,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    
+
     // Extract form fields
     const jenisLayanan = formData.get('jenisLayanan');
     const namaPasien = formData.get('namaPasien');
@@ -73,11 +72,22 @@ export async function POST(request: NextRequest) {
     const namaMaskapai = formData.get('namaMaskapai');
     const noPenerbangan = formData.get('noPenerbangan');
     const noKursi = formData.get('noKursi');
-
+    console.log('Received form data:', {
+      jenisLayanan,
+      namaPasien,
+      jenisKelamin,
+      tanggalLahir,
+      tanggalPerjalanan,
+      jamPerjalanan,
+      jenisPesawat,
+      namaMaskapai,
+      noPenerbangan,
+      noKursi,
+    });
     if (!namaPasien || !tanggalPerjalanan) {
       return NextResponse.json(
         { error: 'Patient name and travel date are required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -93,7 +103,7 @@ export async function POST(request: NextRequest) {
     ];
 
     const uploadedFiles: { [key: string]: string | null } = {};
-    
+
     for (const field of fileFields) {
       const file = formData.get(field) as File | null;
       if (file && file.size > 0) {
@@ -154,7 +164,7 @@ export async function POST(request: NextRequest) {
         saturasiOksigen, jumlahPendamping, hubunganPasien, namaPendamping, noTeleponPendamping, noTeleponKeluarga,
         fotoKondisiPasien, ktpPasien, manifetPrivateJet, rekamMedisPasien, suratRujukan, tiketPesawat, dokumentPetugasMedis)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      values
+      values,
     );
 
     const evacuationId = (result as any).insertId;
@@ -164,7 +174,14 @@ export async function POST(request: NextRequest) {
       'EVACUATION_REQUEST_CREATED',
       'air_medical_evacuation',
       evacuationId,
-      { namaPasien, tanggalPerjalanan, jenisLayanan, filesUploaded: Object.keys(uploadedFiles).filter(k => uploadedFiles[k]) }
+      {
+        namaPasien,
+        tanggalPerjalanan,
+        jenisLayanan,
+        filesUploaded: Object.keys(uploadedFiles).filter(
+          (k) => uploadedFiles[k],
+        ),
+      },
     );
 
     return NextResponse.json(
@@ -173,13 +190,13 @@ export async function POST(request: NextRequest) {
         id: evacuationId,
         uploadedFiles,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error('Create evacuation error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

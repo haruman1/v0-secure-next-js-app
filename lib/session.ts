@@ -4,13 +4,13 @@ import { query } from './db';
 
 const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
-export async function createSession(userId: number): Promise<string> {
+export async function createSession(userId: string): Promise<string> {
   const sessionId = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + SESSION_DURATION);
 
   await query(
     'INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)',
-    [sessionId, userId, expiresAt]
+    [sessionId, userId, expiresAt],
   );
 
   const cookieStore = await cookies();
@@ -25,7 +25,10 @@ export async function createSession(userId: number): Promise<string> {
   return sessionId;
 }
 
-export async function getSession(): Promise<{ userId: number; sessionId: string } | null> {
+export async function getSession(): Promise<{
+  userId: number;
+  sessionId: string;
+} | null> {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('sessionId')?.value;
 
@@ -33,7 +36,7 @@ export async function getSession(): Promise<{ userId: number; sessionId: string 
 
   const results = await query(
     'SELECT user_id, expires_at FROM sessions WHERE id = ? AND expires_at > NOW()',
-    [sessionId]
+    [sessionId],
   );
 
   if (Array.isArray(results) && results.length > 0) {
@@ -57,10 +60,12 @@ export async function destroySession(): Promise<void> {
   cookieStore.delete('sessionId');
 }
 
-export async function validateSession(sessionId: string): Promise<number | null> {
+export async function validateSession(
+  sessionId: string,
+): Promise<number | null> {
   const results = await query(
     'SELECT user_id FROM sessions WHERE id = ? AND expires_at > NOW()',
-    [sessionId]
+    [sessionId],
   );
 
   if (Array.isArray(results) && results.length > 0) {
