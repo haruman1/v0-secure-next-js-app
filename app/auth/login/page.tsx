@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth } from '@/app/context/auth-context';
+import { useLanguage } from '@/app/context/language-context';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
