@@ -26,6 +26,16 @@
     "sort": "Sort",
     "language": "Language"
   },
+  "nav": {
+    "dashboard": "Dashboard",
+    "form": "Form Permohonan",
+    "verification": "Verifikasi",
+    "revision": "Revisi",
+    "submitted": "Penerbitan",
+    "completed": "Selesai",
+    "draft": "Draft",
+    "totalSubmissions": "Total Permohonan"
+  },
   "auth": {
     "login": "Login",
     "register": "Register",
