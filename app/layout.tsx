@@ -1,10 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
-import { AuthProvider } from './context/auth-context';
+import { Providers } from './providers';
 import '../styles/globals.css';
-import { LanguageProvider } from '@/app/context/language-context';
-import { LanguageSwitcher } from '@/components/language-switcher';
 const _geist = Geist({ subsets: ['latin'] });
 const _geistMono = Geist_Mono({ subsets: ['latin'] });
 
@@ -39,9 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <LanguageProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </LanguageProvider>
+        <Providers>{children}</Providers>
         <Analytics />
       </body>
     </html>
