@@ -108,9 +108,7 @@ export default function EvacuationDetailPage() {
         throw new Error('Failed to delete');
       }
 
-      router.push(
-        user?.role === 'admin' ? '/dashboard/admin' : '/dashboard/user',
-      );
+      router.push('/dashboard');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete');
     } finally {

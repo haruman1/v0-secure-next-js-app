@@ -4,8 +4,21 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './context/auth-context';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, CheckCircle2, Shield, Zap, Users, BarChart3 } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Shield,
+  Zap,
+  Users,
+  BarChart3,
+} from 'lucide-react';
 
 export default function Home() {
   const { user, isLoading } = useAuth();
@@ -13,11 +26,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!isLoading && user) {
-      if (user.role === 'admin') {
-        router.push('/dashboard/admin');
-      } else {
-        router.push('/dashboard/user');
-      }
+      router.push('/dashboard');
     }
   }, [user, isLoading, router]);
 
@@ -35,7 +44,9 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="text-primary text-lg font-semibold">Redirecting...</div>
+          <div className="text-primary text-lg font-semibold">
+            Redirecting...
+          </div>
         </div>
       </div>
     );
@@ -50,7 +61,9 @@ export default function Home() {
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
               M
             </div>
-            <span className="font-bold text-lg text-foreground">Medical Evacuation System</span>
+            <span className="font-bold text-lg text-foreground">
+              Medical Evacuation System
+            </span>
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => router.push('/auth/login')}>
@@ -71,7 +84,8 @@ export default function Home() {
             <span className="block text-primary">Made Simple</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            A secure, efficient system for managing medical evacuation requests with real-time tracking and admin oversight.
+            A secure, efficient system for managing medical evacuation requests
+            with real-time tracking and admin oversight.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Button size="lg" onClick={() => router.push('/auth/register')}>
@@ -97,11 +111,17 @@ export default function Home() {
           </CardHeader>
           <CardContent className="space-y-2">
             <div>
-              <p className="text-sm font-medium text-foreground">Admin Account:</p>
+              <p className="text-sm font-medium text-foreground">
+                Admin Account:
+              </p>
               <p className="text-sm text-muted-foreground">
-                Email: <code className="bg-card px-2 py-1 rounded">admin@example.com</code>
+                Email:{' '}
+                <code className="bg-card px-2 py-1 rounded">
+                  admin@example.com
+                </code>
                 <br />
-                Password: <code className="bg-card px-2 py-1 rounded">admin123</code>
+                Password:{' '}
+                <code className="bg-card px-2 py-1 rounded">admin123</code>
               </p>
             </div>
           </CardContent>
@@ -118,7 +138,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Create evacuation requests in minutes with our intuitive form interface.
+                Create evacuation requests in minutes with our intuitive form
+                interface.
               </p>
             </CardContent>
           </Card>
@@ -132,7 +153,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Enterprise-grade security with encrypted sessions and audit logging for compliance.
+                Enterprise-grade security with encrypted sessions and audit
+                logging for compliance.
               </p>
             </CardContent>
           </Card>
@@ -146,7 +168,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Separate admin and user interfaces with appropriate permissions and controls.
+                Separate admin and user interfaces with appropriate permissions
+                and controls.
               </p>
             </CardContent>
           </Card>
@@ -160,7 +183,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Track evacuation status from pending to completion with real-time updates.
+                Track evacuation status from pending to completion with
+                real-time updates.
               </p>
             </CardContent>
           </Card>
@@ -174,7 +198,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                View comprehensive statistics and insights on evacuation requests and priorities.
+                View comprehensive statistics and insights on evacuation
+                requests and priorities.
               </p>
             </CardContent>
           </Card>
@@ -188,7 +213,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Categorize requests by priority level (Low, Medium, High, Critical) for better management.
+                Categorize requests by priority level (Low, Medium, High,
+                Critical) for better management.
               </p>
             </CardContent>
           </Card>
@@ -198,9 +224,12 @@ export default function Home() {
         <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
           <CardContent className="pt-8 text-center space-y-6">
             <div>
-              <h2 className="text-3xl font-bold text-foreground mb-2">Ready to get started?</h2>
+              <h2 className="text-3xl font-bold text-foreground mb-2">
+                Ready to get started?
+              </h2>
               <p className="text-muted-foreground">
-                Join the Medical Evacuation System and streamline your medical transport operations.
+                Join the Medical Evacuation System and streamline your medical
+                transport operations.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

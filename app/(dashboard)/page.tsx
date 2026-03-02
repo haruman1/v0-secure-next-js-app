@@ -7,11 +7,6 @@ export default function DashboardRedirect() {
     if (!user) {
       redirect('/auth/login');
     }
-
-    if (user?.role === 'admin') {
-      redirect('/dashboard/admin');
-    }
-
-    redirect('/dashboard/user');
+    redirect('/dashboard');
   }
 }

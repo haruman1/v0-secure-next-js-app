@@ -17,48 +17,57 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useApplications } from '@/app/context/ApplicationContext';
+import { useAuth } from '@/app/context/auth-context';
 
 export default function Dashboard() {
   const { getApplicationsByStatus } = useApplications();
+  const { user, isLoading } = useAuth();
 
+  if (isLoading) return null;
+
+  const isAdmin = user?.role === 'admin';
+
+  /**
+   * USER → hanya lihat Draft / Verifikasi / Revisi
+   * ADMIN → lihat semua
+   */
   const stats = [
-    {
-      label: 'Total Permohonan',
-      value: getApplicationsByStatus('verification').length.toString(),
-      icon: FileText,
-      color: 'bg-blue-500',
-    },
     {
       label: 'Verifikasi',
       value: getApplicationsByStatus('verification').length.toString(),
       icon: CheckCircle,
       color: 'bg-yellow-500',
+      show: true,
     },
     {
       label: 'Revisi',
       value: getApplicationsByStatus('revision').length.toString(),
       icon: Edit,
       color: 'bg-orange-500',
-    },
-    {
-      label: 'Penerbitan',
-      value: getApplicationsByStatus('publication').length.toString(),
-      icon: FileCheck,
-      color: 'bg-green-500',
-    },
-    {
-      label: 'Selesai',
-      value: getApplicationsByStatus('completed').length.toString(),
-      icon: CheckSquare,
-      color: 'bg-teal-500',
+      show: true,
     },
     {
       label: 'Draft',
       value: getApplicationsByStatus('draft').length.toString(),
       icon: FilePlus,
       color: 'bg-gray-500',
+      show: !isAdmin, // hanya user
     },
-  ];
+    {
+      label: 'Penerbitan',
+      value: getApplicationsByStatus('publication').length.toString(),
+      icon: FileCheck,
+      color: 'bg-green-500',
+      show: isAdmin,
+    },
+    {
+      label: 'Selesai',
+      value: getApplicationsByStatus('completed').length.toString(),
+      icon: CheckSquare,
+      color: 'bg-teal-500',
+      show: isAdmin,
+    },
+  ].filter((s) => s.show);
 
   return (
     <div className="p-8">
@@ -89,32 +98,33 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Mulai Permohonan Baru</CardTitle>
-          <CardDescription>
-            Buat permohonan evakuasi medis udara baru atau lanjutkan draft yang
-            tersimpan
-          </CardDescription>
-        </CardHeader>
+      {/* USER ONLY ACTION */}
+      {!isAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Mulai Permohonan Baru</CardTitle>
+            <CardDescription>
+              Buat permohonan evakuasi medis udara baru atau lanjutkan draft
+            </CardDescription>
+          </CardHeader>
 
-        <CardContent className="flex gap-4">
-          <Link
-            href="/dashboard/permohonan"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            Buat Permohonan Baru
-          </Link>
+          <CardContent className="flex gap-4">
+            <Link
+              href="/dashboard/permohonan"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg"
+            >
+              Buat Permohonan Baru
+            </Link>
 
-          <Link
-            href="/dashboard/draft"
-            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-          >
-            Lihat Draft
-          </Link>
-        </CardContent>
-      </Card>
+            <Link
+              href="/dashboard/draft"
+              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg"
+            >
+              Lihat Draft
+            </Link>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
