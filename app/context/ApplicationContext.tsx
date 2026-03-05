@@ -5,15 +5,18 @@ import {
   useContext,
   useState,
   ReactNode,
-  useEffect,
-} from 'react';
+  useEffect
+} from "react";
 
 export interface Application {
   id: string;
-  status: 'draft' | 'verification' | 'revision' | 'publication' | 'completed';
+
+  status: "draft" | "verification" | "revision" | "publication" | "completed";
+
   createdAt: string;
   updatedAt: string;
 
+  /* DATA PENERBANGAN */
   jenisLayanan: string;
   jenisKeberangkatan: string;
   jenisPesawat: string;
@@ -27,10 +30,12 @@ export interface Application {
   tanggalPerjalanan: string;
   jamPerjalanan: string;
 
+  /* DATA PASIEN */
   namaPasien: string;
   jenisKelamin: string;
   tanggalLahir: string;
 
+  /* KONDISI PASIEN */
   memerlukanOksigen: string;
   posisiPasien: string;
   tingkatKesadaran: string;
@@ -39,6 +44,7 @@ export interface Application {
   frekuensiPernafasan: string;
   saturasiOksigen: string;
 
+  /* DATA PENDAMPING */
   jumlahPendamping: string;
   hubunganDenganPasien: string;
   namaPendamping: string;
@@ -46,6 +52,7 @@ export interface Application {
   noTeleponKeluarga: string;
   noSuratIzinPraktik: string;
 
+  /* DOKUMEN */
   fotoKondisi: string;
   ktpPaspor: string;
   manifest: string;
@@ -58,91 +65,241 @@ export interface Application {
 }
 
 interface ApplicationContextType {
+
   applications: Application[];
-  isReady: boolean;
+
+  fetchApplications: () => Promise<void>;
+
   addApplication: (
-    app: Omit<Application, 'id' | 'createdAt' | 'updatedAt' | 'status'>,
-  ) => void;
-  updateApplication: (id: string, data: Partial<Application>) => void;
-  getApplicationsByStatus: (status: Application['status']) => Application[];
-  deleteApplication: (id: string) => void;
+    app: Omit<Application, "id" | "createdAt" | "updatedAt" | "status">
+  ) => Promise<void>;
+
+  updateApplication: (
+    id: string,
+    data: Partial<Application>
+  ) => Promise<void>;
+
+  deleteApplication: (id: string) => Promise<void>;
+  moveToVerification: (id: string) => Promise<void>;
+  moveToRevision: (id: string, notes: string) => Promise<void>;
+  moveToPublication: (id: string) => Promise<void>;
+  moveToCompleted: (id: string) => Promise<void>;
+  saveDraft: (
+    data: Omit<Application, "id" | "createdAt" | "updatedAt" | "status">
+  ) => Promise<void>;
+
+  getApplicationsByStatus: (status: Application["status"]) => Application[];
 }
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(
-  undefined,
+  undefined
 );
 
 export function ApplicationProvider({ children }: { children: ReactNode }) {
   const [applications, setApplications] = useState<Application[]>([]);
-  const [isReady, setIsReady] = useState(false);
 
-  // ✅ load dari localStorage hanya di client
+  /* ===============================
+     FETCH DATA FROM DATABASE
+  =============================== */
+
+  const fetchApplications = async () => {
+    try {
+      const res = await fetch("/api/evacuations", {
+        credentials: "include"
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setApplications(result.data);
+      }
+    } catch (error) {
+      console.error("Fetch applications error:", error);
+    }
+  };
+
   useEffect(() => {
-    const stored = localStorage.getItem('medivaq-applications');
-    if (stored) setApplications(JSON.parse(stored));
-    setIsReady(true);
+    fetchApplications();
   }, []);
 
-  // ✅ sync ke localStorage
-  useEffect(() => {
-    if (isReady) {
-      localStorage.setItem(
-        'medivaq-applications',
-        JSON.stringify(applications),
-      );
-    }
-  }, [applications, isReady]);
+  /* ===============================
+     ADD APPLICATION
+  =============================== */
 
-  const addApplication = (
-    appData: Omit<Application, 'id' | 'createdAt' | 'updatedAt' | 'status'>,
+  const addApplication = async (
+    appData: Omit<Application, "id" | "createdAt" | "updatedAt" | "status">
   ) => {
-    const newApp: Application = {
-      ...appData,
-      id: `APP${Date.now()}`,
-      status: 'verification',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setApplications((prev) => [...prev, newApp]);
+    try {
+      const res = await fetch("/api/evacuations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(appData),
+        credentials: "include"
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error);
+      }
+      setApplications(prev => [...prev, result.data]);
+    } catch (error) {
+      console.error("Add application error:", error);
+    }
   };
 
-  const updateApplication = (id: string, data: Partial<Application>) => {
-    setApplications((prev) =>
-      prev.map((app) =>
-        app.id === id
-          ? { ...app, ...data, updatedAt: new Date().toISOString() }
-          : app,
-      ),
-    );
+  /* ===============================
+     UPDATE APPLICATION
+  =============================== */
+
+  const updateApplication = async (
+    id: string,
+    data: Partial<Application>
+  ) => {
+
+    try {
+      const res = await fetch(`/api/evacuations/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data),
+        credentials: "include"
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error);
+      }
+      setApplications(prev =>
+        prev.map(app =>
+          app.id === id
+            ? { ...app, ...data, updatedAt: new Date().toISOString() }
+            : app
+        )
+      );
+
+    } catch (error) {
+      console.error("Update application error:", error);
+    }
   };
 
-  const getApplicationsByStatus = (status: Application['status']) => {
-    return applications.filter((app) => app.status === status);
+  /* ===============================
+     DELETE APPLICATION
+  =============================== */
+
+  const deleteApplication = async (id: string) => {
+    try {
+      await fetch(`/api/evacuations/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      setApplications(prev =>
+        prev.filter(app => app.id !== id)
+      );
+    } catch (error) {
+      console.error("Delete application error:", error);
+    }
   };
 
-  const deleteApplication = (id: string) => {
-    setApplications((prev) => prev.filter((app) => app.id !== id));
+  /* ===============================
+     STATUS MANAGEMENT
+  =============================== */
+
+  const moveToVerification = async (id: string) => {
+    await updateApplication(id, {
+      status: "verification",
+      revisionNotes: undefined
+    });
+  };
+
+  const moveToRevision = async (id: string, notes: string) => {
+    await updateApplication(id, {
+      status: "revision",
+      revisionNotes: notes
+    });
+  };
+
+  const moveToPublication = async (id: string) => {
+    await updateApplication(id, {
+      status: "publication"
+    });
+  };
+
+  const moveToCompleted = async (id: string) => {
+    await updateApplication(id, {
+      status: "completed"
+    });
+  };
+
+  /* ===============================
+     SAVE DRAFT
+  =============================== */
+
+  const saveDraft = async (
+    data: Omit<Application, "id" | "createdAt" | "updatedAt" | "status">
+  ) => {
+    try {
+      const res = await fetch("/api/evacuations/draft", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data),
+        credentials: "include"
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error);
+      }
+      setApplications(prev => [...prev, result.data]);
+    } catch (error) {
+      console.error("Save draft error:", error);
+    }
+  };
+
+  /* ===============================
+     FILTER STATUS
+  =============================== */
+
+  const getApplicationsByStatus = (status: Application["status"]) => {
+    return applications.filter(app => app.status === status);
   };
 
   return (
+
     <ApplicationContext.Provider
       value={{
         applications,
-        isReady,
+        fetchApplications,
         addApplication,
         updateApplication,
-        getApplicationsByStatus,
+
         deleteApplication,
+        moveToVerification,
+        moveToRevision,
+        moveToPublication,
+        moveToCompleted,
+        saveDraft,
+        getApplicationsByStatus
       }}
     >
+
       {children}
+
     </ApplicationContext.Provider>
+
   );
 }
 
+/* ===============================
+   HOOK
+=============================== */
+
 export function useApplications() {
-  const ctx = useContext(ApplicationContext);
-  if (!ctx)
-    throw new Error('useApplications must be used within ApplicationProvider');
-  return ctx;
+  const context = useContext(ApplicationContext);
+  if (!context) {
+    throw new Error(
+      "useApplications must be used within ApplicationProvider"
+    );
+  }
+  return context;
+  
 }
