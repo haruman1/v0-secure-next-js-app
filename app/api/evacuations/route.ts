@@ -53,150 +53,225 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+
   try {
-    const session = await getSession();
+
+    const session = await getSession()
+
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
     }
 
-    const formData = await request.formData();
+    const formData = await request.formData()
 
-    // Extract form fields
-    const jenisLayanan = formData.get('jenisLayanan');
-    const namaPasien = formData.get('namaPasien');
-    const jenisKelamin = formData.get('jenisKelamin');
-    const tanggalLahir = formData.get('tanggalLahir');
-    const tanggalPerjalanan = formData.get('tanggalPerjalanan');
-    const jamPerjalanan = formData.get('jamPerjalanan');
-    const jenisPesawat = formData.get('jenisPesawat');
-    const namaMaskapai = formData.get('namaMaskapai');
-    const noPenerbangan = formData.get('noPenerbangan');
-    const noKursi = formData.get('noKursi');
-    console.log('Received form data:', {
+    /* =========================
+       HELPER AMBIL VALUE
+    ========================= */
+
+    const getValue = (key: string) => {
+      const v = formData.get(key)
+      return typeof v === "string" ? v.trim() : null
+    }
+
+    const jenisLayanan = getValue("jenisLayanan")
+    const jenisPesawat = getValue("jenisPesawat")
+
+    const namaGroundhandling = getValue("namaGroundhandling")
+    const namaPetugas = getValue("namaPetugas")
+    const noTeleponKantor = getValue("noTeleponKantor")
+    const emailPerusahaan = getValue("emailPerusahaan")
+
+    const namaMaskapai = getValue("namaMaskapai")
+    const noPenerbangan = getValue("noPenerbangan")
+    const noKursi = getValue("noKursi")
+
+    const tanggalPerjalanan = getValue("tanggalPerjalanan")
+    const jamPerjalanan = getValue("jamPerjalanan")
+
+    const namaPasien = getValue("namaPasien")
+    const jenisKelamin = getValue("jenisKelamin")
+    const tanggalLahir = getValue("tanggalLahir")
+
+    const oksigen = getValue("oksigen")
+    const posisiPasien = getValue("posisiPasien")
+    const tingkatKesadaran = getValue("tingkatKesadaran")
+
+    const tekananDarah = getValue("tekananDarah")
+    const nadi = getValue("nadi")
+    const frekuensiPernafasan = getValue("frekuensiPernafasan")
+    const saturasiOksigen = getValue("saturasiOksigen")
+
+    const jumlahPendamping = getValue("jumlahPendamping")
+    const hubunganPasien = getValue("hubunganPasien")
+    const namaPendamping = getValue("namaPendamping")
+    const noTeleponPendamping = getValue("noTeleponPendamping")
+    const noTeleponKeluarga = getValue("noTeleponKeluarga")
+
+
+    /* =========================
+       VALIDASI
+    ========================= */
+
+    if (!namaPasien || !tanggalPerjalanan) {
+
+      return NextResponse.json(
+        {
+          error: "Nama pasien dan tanggal perjalanan wajib diisi"
+        },
+        { status: 400 }
+      )
+
+    }
+
+
+    /* =========================
+       FILE PATH
+    ========================= */
+
+    const fileFields = [
+      "fotoKondisiPasien",
+      "ktpPasien",
+      "manifetPrivateJet",
+      "rekamMedisPasien",
+      "suratRujukan",
+      "tiketPesawat",
+      "dokumentPetugasMedis",
+    ]
+
+    const uploadedFiles: Record<string, string | null> = {}
+
+    for (const field of fileFields) {
+
+      const value = formData.get(field)
+
+      if (typeof value === "string" && value.length > 0) {
+        uploadedFiles[field] = value
+      } else {
+        uploadedFiles[field] = null
+      }
+
+    }
+
+
+    /* =========================
+       VALUES INSERT DATABASE
+    ========================= */
+
+    const values = [
+
+      session.userId,
+
       jenisLayanan,
-      namaPasien,
-      jenisKelamin,
-      tanggalLahir,
-      tanggalPerjalanan,
-      jamPerjalanan,
       jenisPesawat,
+      namaGroundhandling,
+      namaPetugas,
+      noTeleponKantor,
+      emailPerusahaan,
+
       namaMaskapai,
       noPenerbangan,
       noKursi,
-    });
-    if (!namaPasien || !tanggalPerjalanan) {
-      return NextResponse.json(
-        { error: 'Patient name and travel date are required' },
-        { status: 400 },
-      );
-    }
 
-    // Handle file uploads
-    const fileFields = [
-      'fotoKondisiPasien',
-      'ktpPasien',
-      'manifetPrivateJet',
-      'rekamMedisPasien',
-      'suratRujukan',
-      'tiketPesawat',
-      'dokumentPetugasMedis',
-    ];
-
-    const uploadedFiles: { [key: string]: string | null } = {};
-
-    for (const field of fileFields) {
-      const file = formData.get(field) as File | null;
-      if (file && file.size > 0) {
-        try {
-          const uploadedFile = await uploadFile(file, field);
-          uploadedFiles[field] = uploadedFile.path;
-        } catch (uploadError) {
-          console.error(`[v0] Error uploading ${field}:`, uploadError);
-          uploadedFiles[field] = null;
-        }
-      } else {
-        uploadedFiles[field] = null;
-      }
-    }
-
-    const values = [
-      session.userId,
-      jenisLayanan || null,
-      jenisPesawat || null,
-      formData.get('namaGroundhandling') || null,
-      formData.get('namaPetugas') || null,
-      formData.get('noTeleponKantor') || null,
-      formData.get('emailPerusahaan') || null,
-      namaMaskapai || null,
-      noPenerbangan || null,
-      noKursi || null,
       tanggalPerjalanan,
-      jamPerjalanan || null,
+      jamPerjalanan,
+
       namaPasien,
-      jenisKelamin || null,
-      tanggalLahir || null,
-      formData.get('oksigen') || null,
-      formData.get('posisiPasien') || null,
-      formData.get('tingkatKesadaran') || null,
-      formData.get('tekananDarah') || null,
-      formData.get('nadi') || null,
-      formData.get('frekuensiPernafasan') || null,
-      formData.get('saturasiOksigen') || null,
-      formData.get('jumlahPendamping') || null,
-      formData.get('hubunganPasien') || null,
-      formData.get('namaPendamping') || null,
-      formData.get('noTeleponPendamping') || null,
-      formData.get('noTeleponKeluarga') || null,
-      uploadedFiles['fotoKondisiPasien'],
-      uploadedFiles['ktpPasien'],
-      uploadedFiles['manifetPrivateJet'],
-      uploadedFiles['rekamMedisPasien'],
-      uploadedFiles['suratRujukan'],
-      uploadedFiles['tiketPesawat'],
-      uploadedFiles['dokumentPetugasMedis'],
-    ];
+      jenisKelamin,
+      tanggalLahir,
+
+      oksigen,
+      posisiPasien,
+      tingkatKesadaran,
+
+      tekananDarah,
+      nadi,
+      frekuensiPernafasan,
+      saturasiOksigen,
+
+      jumlahPendamping,
+      hubunganPasien,
+      namaPendamping,
+      noTeleponPendamping,
+      noTeleponKeluarga,
+
+      uploadedFiles["fotoKondisiPasien"],
+      uploadedFiles["ktpPasien"],
+      uploadedFiles["manifetPrivateJet"],
+      uploadedFiles["rekamMedisPasien"],
+      uploadedFiles["suratRujukan"],
+      uploadedFiles["tiketPesawat"],
+      uploadedFiles["dokumentPetugasMedis"]
+
+    ]
+
+
+    /* =========================
+       DEBUG
+    ========================= */
+
+    console.log("VALUES LENGTH:", values.length)
+
+
+    /* =========================
+       INSERT DATABASE
+    ========================= */
 
     const result = await query(
-      `INSERT INTO air_medical_evacuation 
-       (user_id, jenisLayanan, jenisPesawat, namaGroundhandling, namaPetugas, noTeleponKantor, emailPerusahaan,
-        namaMaskapai, noPenerbangan, noKursi, tanggalPerjalanan, jamPerjalanan, namaPasien, jenisKelamin, 
-        tanggalLahir, oksigen, posisiPasien, tingkatKesadaran, tekananDarah, nadi, frekuensiPernafasan, 
-        saturasiOksigen, jumlahPendamping, hubunganPasien, namaPendamping, noTeleponPendamping, noTeleponKeluarga,
-        fotoKondisiPasien, ktpPasien, manifetPrivateJet, rekamMedisPasien, suratRujukan, tiketPesawat, dokumentPetugasMedis)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      values,
-    );
 
-    const evacuationId = (result as any).insertId;
+      `INSERT INTO air_medical_evacuation 
+      (user_id, jenisLayanan, jenisPesawat, namaGroundhandling, namaPetugas, noTeleponKantor, emailPerusahaan,
+      namaMaskapai, noPenerbangan, noKursi, tanggalPerjalanan, jamPerjalanan, namaPasien, jenisKelamin, 
+      tanggalLahir, oksigen, posisiPasien, tingkatKesadaran, tekananDarah, nadi, frekuensiPernafasan, 
+      saturasiOksigen, jumlahPendamping, hubunganPasien, namaPendamping, noTeleponPendamping, noTeleponKeluarga,
+      fotoKondisiPasien, ktpPasien, manifetPrivateJet, rekamMedisPasien, suratRujukan, tiketPesawat, dokumentPetugasMedis)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      values
+
+    )
+
+
+    const evacuationId = (result as any).insertId
+
 
     await logAuditEvent(
+
       session.userId,
-      'EVACUATION_REQUEST_CREATED',
-      'air_medical_evacuation',
+      "EVACUATION_REQUEST_CREATED",
+      "air_medical_evacuation",
       evacuationId,
       {
         namaPasien,
-        tanggalPerjalanan,
-        jenisLayanan,
-        filesUploaded: Object.keys(uploadedFiles).filter(
-          (k) => uploadedFiles[k],
-        ),
-      },
-    );
+        tanggalPerjalanan
+      }
+
+    )
+
 
     return NextResponse.json(
       {
         success: true,
-        id: evacuationId,
-        uploadedFiles,
+        id: evacuationId
       },
-      { status: 201 },
-    );
+      { status: 201 }
+    )
+
+
   } catch (error) {
-    console.error('Create evacuation error:', error);
+
+    console.error("Create evacuation error:", error)
+
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+      {
+        error: error instanceof Error
+          ? error.message
+          : "Internal server error"
+      },
+      { status: 500 }
+    )
+
   }
+
 }

@@ -110,7 +110,7 @@ export default function Dashboard() {
 
           <CardContent className="flex gap-4">
             <Link
-              href="/dashboard/permohonan"
+              href="/permohonan"
               className="px-6 py-3 bg-blue-600 text-white rounded-lg"
             >
               Buat Permohonan Baru

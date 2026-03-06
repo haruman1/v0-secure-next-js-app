@@ -28,7 +28,7 @@ export default function NewEvacuationPage() {
       }
 
       const res = await response.json();
-      router.push(`/dashboard/evacuation/${res.id}`);
+      router.push(`/api/evacuation/${res.id}`);
     } finally {
       setIsLoading(false);
     }
