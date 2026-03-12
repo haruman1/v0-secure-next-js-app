@@ -5,15 +5,16 @@ import { logAuditEvent } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: { id: string } },
 ) {
   try {
     const session = await getSession();
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = await params;
+    const { id } = params;
 
     const results = await query(
       'SELECT * FROM air_medical_evacuation WHERE id = ?',
@@ -29,10 +30,10 @@ export async function GET(
 
     const evacuation = results[0] as any;
 
-    // Check authorization
-    const userResults = await query('SELECT role FROM users WHERE id = ?', [
-      session.userId,
-    ]);
+    const userResults = await query(
+      'SELECT role FROM users WHERE id = ?',
+      [session.userId],
+    );
 
     if (!Array.isArray(userResults) || userResults.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -48,11 +49,15 @@ export async function GET(
       success: true,
       data: evacuation,
     });
+
   } catch (error) {
+
     console.error('Fetch evacuation error:', error);
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 },
     );
+
   }
 }
