@@ -33,6 +33,7 @@ export default function VerifikasiPage() {
   const [showRevisiModal, setShowRevisiModal] = useState(false)
   const [revisiNote, setRevisiNote] = useState("")
   const [revisiId, setRevisiId] = useState<string | null>(null)
+  const [submittingRevisi, setSubmittingRevisi] = useState(false)
 
   const router = useRouter();
 
@@ -105,7 +106,19 @@ export default function VerifikasiPage() {
 
   async function submitRevisi() {
 
+    if (!revisiId) {
+      alert("ID permohonan tidak ditemukan")
+      return
+    }
+
+    if (!revisiNote.trim()) {
+      alert("Catatan revisi wajib diisi")
+      return
+    }
+
     try {
+      
+       setSubmittingRevisi(true)
 
       const res = await fetch(`/api/evacuations/${revisiId}/reject`, {
         method: "POST",
@@ -114,11 +127,16 @@ export default function VerifikasiPage() {
         },
         credentials: "include",
         body: JSON.stringify({
-          catatanRevisi: revisiNote
+          catatanRevisi: revisiNote.trim()
         })
       })
 
-      if (res.ok) {
+      const result = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        alert(result.error || "Gagal submit catatan revisi")
+        return
+      }
 
         alert("Permohonan dikembalikan untuk revisi")
 
@@ -131,14 +149,16 @@ export default function VerifikasiPage() {
         setRevisiNote("")
 
         router.push("/dashboard/revisi")
-      }
+      
 
     } catch (error) {
 
-      console.error("Reject error:", error)
+       alert("Terjadi kesalahan saat submit catatan revisi")
 
-    }
+    }   finally {
+      setSubmittingRevisi(false)
   }
+}
 
   function formatDate(date: string) {
     if (!date) return "-"
@@ -356,6 +376,7 @@ export default function VerifikasiPage() {
             <Button
               variant="outline"
               onClick={() => setShowRevisiModal(false)}
+              disabled={submittingRevisi}
             >
               Batal
             </Button>
@@ -363,8 +384,9 @@ export default function VerifikasiPage() {
             <Button
               variant="destructive"
               onClick={submitRevisi}
+               disabled={submittingRevisi || !revisiNote.trim()}
             >
-              Submit Revisi
+              {submittingRevisi ? "Menyimpan..." : "Submit Revisi"}
             </Button>
 
           </DialogFooter>
