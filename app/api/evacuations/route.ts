@@ -21,22 +21,47 @@ export async function GET(request: NextRequest) {
     }
 
     const userRole = (userResults[0] as any).role;
+    const statusFilter = request.nextUrl.searchParams.get('status');
 
     let results;
     if (userRole === 'admin') {
       // Admins see all evacuations
-      results = await query(`
-        SELECT e.*, u.full_name, u.email
-        FROM air_medical_evacuation e
-        LEFT JOIN users u ON e.user_id = u.id
-        ORDER BY e.created_at DESC
-      `);
+       if (statusFilter) {
+        results = await query(
+          `
+            SELECT e.*, u.full_name, u.email
+            FROM air_medical_evacuation e
+            LEFT JOIN users u ON e.user_id = u.id
+            WHERE e.status = ?
+            ORDER BY e.created_at DESC
+          `,
+          [statusFilter],
+        );
+      } else {
+        results = await query(`
+          SELECT e.*, u.full_name, u.email
+          FROM air_medical_evacuation e
+          LEFT JOIN users u ON e.user_id = u.id
+          ORDER BY e.created_at DESC
+        `);
+      }
     } else {
-      // Users see only their own
-      results = await query(
-        `SELECT * FROM air_medical_evacuation WHERE user_id = ? ORDER BY created_at DESC`,
-        [session.userId],
-      );
+      if (statusFilter) {
+        results = await query(
+          `
+            SELECT *
+            FROM air_medical_evacuation
+            WHERE user_id = ? AND status = ?
+            ORDER BY created_at DESC
+          `,
+          [session.userId, statusFilter],
+        );
+      } else {
+        results = await query(
+          `SELECT * FROM air_medical_evacuation WHERE user_id = ? ORDER BY created_at DESC`,
+          [session.userId],
+        );
+      }
     }
 
     return NextResponse.json({
