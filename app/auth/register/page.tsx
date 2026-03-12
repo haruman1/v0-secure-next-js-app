@@ -1,72 +1,89 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription
 } from '@/components/ui/card';
-import { useAuth } from '@/app/context/auth-context';
-import { useLanguage } from '@/app/context/language-context';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
-import { Toaster } from '@/components/ui/toaster';
-import { LanguageSwitcher } from '@/components/language-switcher';
+
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+import {
+  Ambulance,
+  AlertCircle,
+  CheckCircle2
+} from 'lucide-react';
+
+import { useAuth } from '@/app/context/auth-context';
+import { useLanguage } from '@/app/context/language-context';
+
 export default function RegisterPage() {
+
+  const router = useRouter();
+  const { register } = useAuth();
+  const { t } = useLanguage();
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
     phone: '',
-     role: 'user' as 'admin' | 'user',
+    role: 'user' as 'admin' | 'user'
   });
+
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
   const [validations, setValidations] = useState({
     length: false,
     hasNumber: false,
-    hasUppercase: false,
-    hasSpecial: false,
+    hasUppercase: false
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
-  const router = useRouter();
-  const { toast } = useToast();
-  const { t } = useLanguage();
 
   const validatePassword = (pwd: string) => {
     setValidations({
       length: pwd.length >= 8,
       hasNumber: /\d/.test(pwd),
-      hasUppercase: /[A-Z]/.test(pwd),
-      hasSpecial: /[!@#$%^&*]/.test(pwd),
+      hasUppercase: /[A-Z]/.test(pwd)
     });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
     if (name === 'password') {
       validatePassword(value);
     }
+
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+
     e.preventDefault();
     setError('');
 
@@ -83,38 +100,59 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
+
       await register(
         formData.email,
         formData.password,
         formData.fullName,
         formData.phone,
-        formData.role,
+        formData.role
       );
-      toast({
-        title: t('auth.registrationSuccess'),
-        description: t('auth.registrationSuccessDesc'),
-        variant: 'default',
-      });
+
       router.push('/dashboard');
+
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('messages.loadingError'));
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : t('messages.loadingError')
+      );
+
     } finally {
+
       setIsLoading(false);
+
     }
+
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <div className="absolute top-4 right-4">
-        <LanguageSwitcher />
-      </div>
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">{t('auth.register')}</CardTitle>
-          <CardDescription>{t('evacuation.title')}</CardDescription>
+
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-white to-sky-100 p-6">
+
+      <Card className="w-full max-w-md shadow-xl border border-sky-100">
+
+        <CardHeader className="text-center space-y-3">
+
+          <div className="mx-auto h-12 w-12 rounded-xl bg-sky-500 text-white flex items-center justify-center">
+            <Ambulance className="h-6 w-6" />
+          </div>
+
+          <CardTitle className="text-2xl font-semibold">
+            Buat Akun Medivaq
+          </CardTitle>
+
+          <CardDescription>
+            Daftar untuk evakuasi medis secara digital
+          </CardDescription>
+
         </CardHeader>
+
         <CardContent>
+
           <form onSubmit={handleSubmit} className="space-y-4">
+
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -122,142 +160,203 @@ export default function RegisterPage() {
               </Alert>
             )}
 
+            {/* NAMA */}
+
             <div className="space-y-2">
-              <label htmlFor="fullName" className="text-sm font-medium">
-                {t('auth.fullName')}
+              <label className="text-sm font-medium">
+                Nama lengkap
               </label>
+
               <Input
-                id="fullName"
                 name="fullName"
-                placeholder={t('auth.fullName')}
+                placeholder="Nama lengkap"
                 value={formData.fullName}
                 onChange={handleChange}
+                className="h-11"
                 required
-                disabled={isLoading}
               />
             </div>
 
+            {/* ROLE */}
+
             <div className="space-y-2">
-              <label htmlFor="role" className="text-sm font-medium">
+
+              <label className="text-sm font-medium">
                 Role
               </label>
+
               <Select
                 value={formData.role}
                 onValueChange={(value: 'admin' | 'user') =>
-                  setFormData((prev) => ({ ...prev, role: value }))
+                  setFormData(prev => ({
+                    ...prev,
+                    role: value
+                  }))
                 }
-                disabled={isLoading}
               >
-                <SelectTrigger id="role">
+
+                <SelectTrigger className="w-full h-11">
                   <SelectValue placeholder="Pilih role" />
                 </SelectTrigger>
+
                 <SelectContent>
                   <SelectItem value="user">User</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
+
               </Select>
+
             </div>
 
+            {/* EMAIL */}
+
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                {t('auth.email')}
+
+              <label className="text-sm font-medium">
+                Email
               </label>
+
               <Input
-                id="email"
                 name="email"
                 type="email"
-                placeholder={t('auth.email')}
+                placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
+                className="h-11"
                 required
-                disabled={isLoading}
               />
+
             </div>
 
+            {/* TELEPON */}
+
             <div className="space-y-2">
-              <label htmlFor="phone" className="text-sm font-medium">
-                {t('auth.phone')}
+
+              <label className="text-sm font-medium">
+                Nomor telepon
               </label>
+
               <Input
-                id="phone"
                 name="phone"
                 type="tel"
-                placeholder={t('auth.phonePlaceholder')}
+                placeholder="Nomor telepon"
                 value={formData.phone}
                 onChange={handleChange}
-                disabled={isLoading}
+                className="h-11"
               />
+
             </div>
 
+            {/* PASSWORD */}
+
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                {t('auth.password')}
+
+              <label className="text-sm font-medium">
+                Password
               </label>
+
               <Input
-                id="password"
                 name="password"
                 type="password"
-                placeholder={t('auth.passwordPlaceholder')}
+                placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
+                className="h-11"
                 required
-                disabled={isLoading}
               />
+
               <div className="space-y-1 text-xs mt-2">
+
                 <div className="flex items-center gap-2">
                   <CheckCircle2
-                    className={`h-3 w-3 ${validations.length ? 'text-green-600' : 'text-muted-foreground'}`}
+                    className={`h-3 w-3 ${
+                      validations.length
+                        ? 'text-green-500'
+                        : 'text-muted-foreground'
+                    }`}
                   />
-                  <span>{t('auth.atLeast8Chars')}</span>
+                  <span>Minimal 8 karakter</span>
                 </div>
+
                 <div className="flex items-center gap-2">
                   <CheckCircle2
-                    className={`h-3 w-3 ${validations.hasNumber ? 'text-green-600' : 'text-muted-foreground'}`}
+                    className={`h-3 w-3 ${
+                      validations.hasNumber
+                        ? 'text-green-500'
+                        : 'text-muted-foreground'
+                    }`}
                   />
-                  <span>{t('auth.oneNumber')}</span>
+                  <span>Memiliki angka</span>
                 </div>
+
                 <div className="flex items-center gap-2">
                   <CheckCircle2
-                    className={`h-3 w-3 ${validations.hasUppercase ? 'text-green-600' : 'text-muted-foreground'}`}
+                    className={`h-3 w-3 ${
+                      validations.hasUppercase
+                        ? 'text-green-500'
+                        : 'text-muted-foreground'
+                    }`}
                   />
-                  <span>{t('auth.oneUppercase')}</span>
+                  <span>Memiliki huruf besar</span>
                 </div>
+
               </div>
+
             </div>
+
+            {/* CONFIRM PASSWORD */}
 
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">
-                {t('auth.confirmPassword')}
+
+              <label className="text-sm font-medium">
+                Konfirmasi password
               </label>
+
               <Input
-                id="confirmPassword"
                 name="confirmPassword"
                 type="password"
-                placeholder={t('auth.confirmPassword')}
+                placeholder="Konfirmasi password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                className="h-11"
                 required
-                disabled={isLoading}
               />
+
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? t('messages.pleaseWait') : t('auth.register')}
+            {/* BUTTON */}
+
+            <Button
+              type="submit"
+              className="w-full h-11 bg-sky-500 hover:bg-sky-600 text-white"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Memproses...' : 'Daftar'}
             </Button>
 
+            {/* LOGIN */}
+
             <p className="text-center text-sm text-muted-foreground">
-              {t('auth.alreadyHaveAccount')}{' '}
+
+              Sudah punya akun?{' '}
+
               <Link
                 href="/auth/login"
-                className="text-primary hover:underline font-medium"
+                className="text-sky-600 font-medium hover:underline"
               >
-                {t('auth.login')}
+                Login
               </Link>
+
             </p>
+
           </form>
+
         </CardContent>
+
       </Card>
-      <Toaster />
+
     </div>
+
   );
+
 }
