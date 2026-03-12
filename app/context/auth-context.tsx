@@ -6,7 +6,7 @@ interface User {
   id: string;
   email: string;
   fullName: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user',
 }
 
 interface AuthContextType {
@@ -18,6 +18,8 @@ interface AuthContextType {
     password: string,
     fullName: string,
     phone?: string,
+    role: 'admin' | 'user'
+
   ) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -68,11 +70,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
     fullName: string,
     phone?: string,
+    role: 'admin' | 'user'
+
   ) => {
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, fullName, phone }),
+      body: JSON.stringify({ email, password, fullName, role, phone }),
     });
 
     if (!response.ok) {
