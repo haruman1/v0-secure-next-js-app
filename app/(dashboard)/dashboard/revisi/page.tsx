@@ -40,7 +40,7 @@ export default function RevisiPage() {
 
     try {
 
-      const res = await fetch("/api/evacuations", {
+      const res = await fetch("/api/evacuations?status=reviewed", {
         credentials: "include"
       })
 
@@ -48,11 +48,9 @@ export default function RevisiPage() {
 
       if (res.ok) {
 
-        const revisi = result.data.filter(
-          (item: any) => item.status === "revisi"
-        )
+        
 
-        setApplications(revisi)
+        setApplications(result.data)
 
       }
 
@@ -72,28 +70,32 @@ export default function RevisiPage() {
 
   async function openDetail(id: string) {
 
-    try {
+  try {
 
-      const res = await fetch(`/api/evacuations/${id}`, {
-        credentials: "include"
-      })
+    const res = await fetch(`/api/evacuations/${id}`, {
+      credentials: "include"
+    })
 
-      const result = await res.json()
+    const result = await res.json()
 
-      if (res.ok) {
+    console.log("DETAIL DATA:", result)
 
-        setSelectedApp(result.data)
-        setShowDetail(true)
+    if (res.ok) {
 
-      }
+      // ini yang penting
+      setSelectedApp(result.data || result)
 
-    } catch (error) {
-
-      console.error("Detail error:", error)
+      setShowDetail(true)
 
     }
 
+  } catch (error) {
+
+    console.error("Detail error:", error)
+
   }
+
+}
 
 
 
