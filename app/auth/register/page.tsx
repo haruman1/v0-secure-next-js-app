@@ -19,6 +19,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -27,6 +34,7 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
     phone: '',
+     role: 'user' as 'admin' | 'user',
   });
   const [error, setError] = useState('');
   const [validations, setValidations] = useState({
@@ -80,6 +88,7 @@ export default function RegisterPage() {
         formData.password,
         formData.fullName,
         formData.phone,
+        formData.role,
       );
       toast({
         title: t('auth.registrationSuccess'),
@@ -126,6 +135,27 @@ export default function RegisterPage() {
                 required
                 disabled={isLoading}
               />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="role" className="text-sm font-medium">
+                Role
+              </label>
+              <Select
+                value={formData.role}
+                onValueChange={(value: 'admin' | 'user') =>
+                  setFormData((prev) => ({ ...prev, role: value }))
+                }
+                disabled={isLoading}
+              >
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Pilih role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
