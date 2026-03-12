@@ -12,6 +12,7 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation";
 
 import {
   Dialog,
@@ -31,6 +32,8 @@ export default function VerifikasiPage() {
   const [showDetail, setShowDetail] = useState(false)
   const [detailStep, setDetailStep] = useState(1)
   const { moveToRevision } = useApplications()
+  const router = useRouter();
+
 
   useEffect(() => {
     fetchApplications()
@@ -106,6 +109,7 @@ export default function VerifikasiPage() {
           prev.filter(app => app.id !== id)
         )
         setShowDetail(false)
+        router.push("/revisi")
       }
     } catch (error) {
       console.error(error)

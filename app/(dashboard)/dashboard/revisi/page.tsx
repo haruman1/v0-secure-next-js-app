@@ -1,14 +1,13 @@
 'use client'
 
-import { useState } from "react"
-import { useApplications, type Application } from "@/app/context/ApplicationContext"
+import { useEffect, useState } from "react"
 
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription
 } from "@/components/ui/card"
 
 import { Badge } from "@/components/ui/badge"
@@ -17,55 +16,96 @@ import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter
 } from "@/components/ui/dialog"
-
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
 
 export default function RevisiPage() {
 
-  const {
-    getApplicationsByStatus,
-    updateApplication
-  } = useApplications()
+  const [applications, setApplications] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const applications = getApplicationsByStatus("revision") || []
+  const [selectedApp, setSelectedApp] = useState<any>(null)
+  const [showDetail, setShowDetail] = useState(false)
 
-  const [selectedApp, setSelectedApp] = useState<Application | null>(null)
-
-  const [showEditDialog, setShowEditDialog] = useState(false)
-
-  const [editData, setEditData] = useState<Application | null>(null)
+  useEffect(() => {
+    fetchApplications()
+  }, [])
 
 
+  async function fetchApplications() {
 
-  function handleEdit(app: Application) {
+    try {
 
-    setEditData(app)
+      const res = await fetch("/api/evacuations", {
+        credentials: "include"
+      })
 
-    setShowEditDialog(true)
+      const result = await res.json()
+
+      if (res.ok) {
+
+        const revisi = result.data.filter(
+          (item: any) => item.status === "revisi"
+        )
+
+        setApplications(revisi)
+
+      }
+
+    } catch (error) {
+
+      console.error("Fetch error:", error)
+
+    } finally {
+
+      setLoading(false)
+
+    }
 
   }
 
 
 
-  function handleSubmit() {
+  async function openDetail(id: string) {
 
-    if (!editData) return
+    try {
 
-    updateApplication(editData.id, {
-      ...editData,
-      status: "verification"
+      const res = await fetch(`/api/evacuations/${id}`, {
+        credentials: "include"
+      })
+
+      const result = await res.json()
+
+      if (res.ok) {
+
+        setSelectedApp(result.data)
+        setShowDetail(true)
+
+      }
+
+    } catch (error) {
+
+      console.error("Detail error:", error)
+
+    }
+
+  }
+
+
+
+  function formatDate(date: string) {
+
+    if (!date) return "-"
+
+    return new Date(date).toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric"
     })
-
-    alert("Permohonan berhasil diperbaiki dan dikirim ulang")
-
-    setShowEditDialog(false)
 
   }
 
@@ -76,13 +116,15 @@ export default function RevisiPage() {
     <div className="p-8">
 
       <div className="mb-8">
+
         <h1 className="text-3xl font-bold mb-2">
-          Revisi Permohonan
+          Permohonan Revisi
         </h1>
 
         <p className="text-gray-600">
-          Permohonan yang perlu diperbaiki
+          Daftar permohonan yang perlu diperbaiki
         </p>
+
       </div>
 
 
@@ -92,11 +134,11 @@ export default function RevisiPage() {
         <CardHeader>
 
           <CardTitle>
-            Permohonan Revisi
+            Data Revisi
           </CardTitle>
 
           <CardDescription>
-            {applications.length} permohonan perlu diperbaiki
+            {applications.length} permohonan perlu revisi
           </CardDescription>
 
         </CardHeader>
@@ -105,9 +147,15 @@ export default function RevisiPage() {
 
         <CardContent>
 
-          {applications.length === 0 ? (
+          {loading ? (
 
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-10">
+              Loading...
+            </div>
+
+          ) : applications.length === 0 ? (
+
+            <div className="text-center py-10 text-gray-500">
               Tidak ada permohonan revisi
             </div>
 
@@ -119,122 +167,52 @@ export default function RevisiPage() {
 
                 <div
                   key={app.id}
-                  className="border rounded-lg p-4"
+                  className="border rounded-lg p-4 flex justify-between items-center"
                 >
 
-                  <div className="flex items-start justify-between mb-4">
+                  <div>
 
-                    <div>
+                    <div className="font-semibold">
+                      {app.namaPasien || "-"}
+                    </div>
 
-                      <div className="font-medium mb-1">
-                        {app.namaPasien || "Nama belum diisi"}
-                      </div>
+                    <div className="text-sm text-gray-500">
+                      ID: {app.id}
+                    </div>
 
-                      <div className="text-sm text-gray-600">
-                        ID: {app.id} | {app.noPenerbangan || "-"}
-                      </div>
+                    <div className="text-sm text-gray-500">
+                      {app.noPenerbangan || "-"}
+                    </div>
 
-                      <div className="text-sm text-gray-600">
-                        Tanggal{" "}
-                        {app.tanggalPerjalanan
-                          ? new Date(app.tanggalPerjalanan).toLocaleDateString("id-ID")
-                          : "-"
-                        }
-                      </div>
+                    <div className="text-sm text-gray-500">
+
+                      {app.tanggalPerjalanan
+                        ? new Date(app.tanggalPerjalanan)
+                            .toLocaleDateString("id-ID")
+                        : "-"
+                      }
 
                     </div>
 
+                  </div>
+
+
+
+                  <div className="flex items-center gap-2">
 
                     <Badge variant="destructive">
                       Revisi
                     </Badge>
 
-                  </div>
-
-
-
-                  {/* CATATAN REVISI */}
-
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm mb-3">
-
-                    <span className="font-semibold text-red-600">
-                      Catatan Revisi
-                    </span>
-
-                    <p className="text-gray-700 mt-1">
-                      {app.revisionNotes || "Tidak ada catatan"}
-                    </p>
-
-                  </div>
-
-
-
-                  <div className="flex gap-2">
-
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() =>
-                        setSelectedApp(
-                          selectedApp?.id === app.id ? null : app
-                        )
-                      }
+                      onClick={() => openDetail(app.id)}
                     >
-                      {selectedApp?.id === app.id
-                        ? "Sembunyikan"
-                        : "Lihat Detail"}
-                    </Button>
-
-
-                    <Button
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => handleEdit(app)}
-                    >
-                      Perbaiki Permohonan
+                      Detail
                     </Button>
 
                   </div>
-
-
-
-                  {/* DETAIL DATA */}
-
-                  {selectedApp?.id === app.id && (
-
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm">
-
-                      <div className="grid grid-cols-2 gap-4">
-
-                        <div>
-                          <b>Maskapai:</b> {app.namaMaskapai || "-"}
-                        </div>
-
-                        <div>
-                          <b>No Penerbangan:</b> {app.noPenerbangan || "-"}
-                        </div>
-
-                        <div>
-                          <b>Groundhandling:</b> {app.namaGroundhandling || "-"}
-                        </div>
-
-                        <div>
-                          <b>Petugas:</b> {app.namaPetugas || "-"}
-                        </div>
-
-                        <div>
-                          <b>No Telepon:</b> {app.noTelepon || "-"}
-                        </div>
-
-                        <div>
-                          <b>Email:</b> {app.emailPerusahaan || "-"}
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  )}
 
                 </div>
 
@@ -250,75 +228,96 @@ export default function RevisiPage() {
 
 
 
-      {/* MODAL EDIT */}
+      {/* MODAL DETAIL */}
 
-      <Dialog
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-      >
+      <Dialog open={showDetail} onOpenChange={setShowDetail}>
 
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-xl">
 
           <DialogHeader>
 
             <DialogTitle>
-              Perbaiki Permohonan
+              Detail Permohonan Revisi
             </DialogTitle>
 
             <DialogDescription>
-              Silakan perbaiki data sesuai catatan revisi
+              Data permohonan yang perlu diperbaiki
             </DialogDescription>
 
           </DialogHeader>
 
 
 
-          {editData && (
+          {selectedApp && (
 
-            <div className="space-y-4">
+            <div className="space-y-4 text-sm">
 
               <div>
-                <Label>Nama Pasien</Label>
 
-                <Input
-                  value={editData.namaPasien || ""}
-                  onChange={(e) =>
-                    setEditData({
-                      ...editData,
-                      namaPasien: e.target.value
-                    })
-                  }
-                />
+                <p className="text-xs text-gray-500">
+                  Nama Pasien
+                </p>
+
+                <p className="font-medium">
+                  {selectedApp.namaPasien || "-"}
+                </p>
+
               </div>
 
 
-              <div>
-                <Label>No Penerbangan</Label>
 
-                <Input
-                  value={editData.noPenerbangan || ""}
-                  onChange={(e) =>
-                    setEditData({
-                      ...editData,
-                      noPenerbangan: e.target.value
-                    })
-                  }
-                />
+              <div>
+
+                <p className="text-xs text-gray-500">
+                  Jenis Layanan
+                </p>
+
+                <p className="font-medium">
+                  {selectedApp.jenisLayanan || "-"}
+                </p>
+
               </div>
 
 
-              <div>
-                <Label>Nama Maskapai</Label>
 
-                <Input
-                  value={editData.namaMaskapai || ""}
-                  onChange={(e) =>
-                    setEditData({
-                      ...editData,
-                      namaMaskapai: e.target.value
-                    })
-                  }
-                />
+              <div>
+
+                <p className="text-xs text-gray-500">
+                  Nama Maskapai
+                </p>
+
+                <p className="font-medium">
+                  {selectedApp.namaMaskapai || "-"}
+                </p>
+
+              </div>
+
+
+
+              <div>
+
+                <p className="text-xs text-gray-500">
+                  No Penerbangan
+                </p>
+
+                <p className="font-medium">
+                  {selectedApp.noPenerbangan || "-"}
+                </p>
+
+              </div>
+
+
+
+              <div>
+
+                <p className="text-xs text-gray-500">
+                  Tanggal Perjalanan
+                </p>
+
+                <p className="font-medium">
+                  {formatDate(selectedApp.tanggalPerjalanan)}
+                </p>
+
               </div>
 
             </div>
@@ -331,17 +330,9 @@ export default function RevisiPage() {
 
             <Button
               variant="outline"
-              onClick={() => setShowEditDialog(false)}
+              onClick={() => setShowDetail(false)}
             >
-              Batal
-            </Button>
-
-
-            <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={handleSubmit}
-            >
-              Kirim Ulang
+              Tutup
             </Button>
 
           </DialogFooter>

@@ -3,7 +3,10 @@ import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'medical-documents');
+const UPLOAD_DIR = path.resolve(
+  process.cwd(),
+  "public/uploads/medical-documents"
+);
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = [
   'image/jpeg',
@@ -20,11 +23,7 @@ export interface UploadedFile {
 }
 
 export async function ensureUploadDir(): Promise<void> {
-  try {
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  } catch (error) {
-    console.error('[v0] Error creating upload directory:', error);
-  }
+  await fs.mkdir(UPLOAD_DIR, { recursive: true });
 }
 
 export async function uploadFile(

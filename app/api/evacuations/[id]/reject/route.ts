@@ -7,7 +7,7 @@ export async function POST(
 ) {
 
   await query(
-    "UPDATE air_medical_evacuation SET status='reviewed' WHERE id=?",
+    "UPDATE air_medical_evacuation SET status='revisi' WHERE id=?",
     [params.id]
   )
 

@@ -17,6 +17,10 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useApplications } from "@/app/context/ApplicationContext";
+import { useRef } from "react"
+import { Eye } from "lucide-react"
+
+
 import {
   Dialog,
   DialogContent,
@@ -33,6 +37,13 @@ export default function PermohonanPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [language, setLanguage] = useState<"id" | "en">("id");
   const [currentStep, setCurrentStep] = useState(1);
+  const [previewFiles, setPreviewFiles] = useState<any>({})
+  const [previewModal, setPreviewModal] = useState(false)
+const [previewFileUrl, setPreviewFileUrl] = useState<string | null>(null)
+const [selectedFile, setSelectedFile] = useState<File | null>(null)
+const [previewField, setPreviewField] = useState<string | null>(null)
+const fileInputRef = useRef<HTMLInputElement | null>(null)
+  
   const [formData, setFormData] = useState<any>({
     jenisLayanan: "",
     jenisPesawat: "",
@@ -245,6 +256,8 @@ export default function PermohonanPage() {
 
   
 
+  
+
 
   /* ===============================
   STEPS
@@ -348,7 +361,15 @@ async function handleSubmit() {
     data.append("noTeleponPendamping", formData.nomorTeleponPendampingMedis || "")
     data.append("noTeleponKeluarga", formData.nomorTeleponKeluarga || "")
     data.append("noTeleponKeluarga", formData. nosuratIzin || "")
-  
+
+ data.append("fotoKondisiPasien", formData.fotoKondisiPasien || "")
+data.append("ktpPasien", formData.ktpPasien || "")
+data.append("manifetPrivateJet", formData.manifetPrivateJet || "")
+data.append("rekamMedisPasien", formData.rekamMedisPasien || "")
+data.append("suratRujukan", formData.suratRujukan || "")
+data.append("tiketPesawat", formData.tiketPesawat || "")
+data.append("dokumentPetugasMedis", formData.dokumentPetugasMedis || "")
+
     const res = await fetch("/api/evacuations", {
       method: "POST",
       body: data,
@@ -376,11 +397,10 @@ async function handleUpload(file: File, field: string) {
   try {
 
     const data = new FormData()
-
     data.append("file", file)
     data.append("fileType", field)
 
-    const res = await fetch("/api/upload", {
+    const res = await fetch("/api/upload/medical-document", {
       method: "POST",
       body: data,
       credentials: "include"
@@ -388,19 +408,26 @@ async function handleUpload(file: File, field: string) {
 
     const result = await res.json()
 
-    if (!res.ok) {
-      throw new Error(result.error)
-    }
+    if (!res.ok) throw new Error(result.error)
 
-    updateField(field, result.data.url)
+    const filePath = result.data.path
 
-    toast.success("Upload berhasil")
+    setFormData((prev:any) => ({
+      ...prev,
+      [field]: filePath
+    }))
+
+    // simpan preview
+    setPreviewFiles((prev:any) => ({
+      ...prev,
+      [field]: filePath
+    }))
+
+    console.log("UPLOAD SUCCESS:", field, filePath)
 
   } catch (error) {
 
     console.error("Upload error:", error)
-
-    toast.error("Upload gagal")
 
   }
 }
@@ -439,6 +466,66 @@ function resetForm() {
 }
 
 
+function handlePreview(file: File, field: string) {
+
+  const previewUrl = URL.createObjectURL(file)
+
+  setPreviewFileUrl(previewUrl)
+  setSelectedFile(file)
+  setPreviewField(field)
+
+  setPreviewModal(true)
+}
+
+async function confirmUpload() {
+
+  if (!selectedFile || !previewField) return
+
+  try {
+
+    const data = new FormData()
+
+    data.append("file", selectedFile)
+    data.append("fileType", previewField)
+
+    const res = await fetch("/api/upload/medical-document", {
+      method: "POST",
+      body: data,
+      credentials: "include"
+    })
+
+    const result = await res.json()
+
+    if (!res.ok) throw new Error(result.error)
+
+    setFormData((prev:any) => ({
+      ...prev,
+      [previewField]: result.data.path
+    }))
+
+      // hanya tutup modal
+    setPreviewModal(false)
+
+  } catch (error) {
+
+    console.error("Upload error:", error)
+
+  }
+}
+
+function resetPreview() {
+
+  setPreviewModal(false)
+  setPreviewFileUrl(null)
+  setSelectedFile(null)
+  setPreviewField(null)
+
+  // RESET INPUT FILE
+  if (fileInputRef.current) {
+    fileInputRef.current.value = ""
+  }
+
+}
 
   /* ===============================
   RETURN
@@ -1132,60 +1219,168 @@ function resetForm() {
 
 
           {/* STEP 5 */}
-        {currentStep === 5 && (
-      <div className="space-y-6">
-        <h2 className="text-xl font-semibold">
-          {t.uploadDocuments}
-        </h2>
+      {currentStep === 5 && (
+  <div className="space-y-6">
 
-    {/* Foto Kondisi Pasien */}
-    <div>
-      <Label>Foto Kondisi Pasien (PDF)</Label>
+    <h2 className="text-xl font-semibold">
+      {t.uploadDocuments}
+    </h2>
+    
+
+    {/* No Surat Praktik */}
+  <div>
+    <Label className="mb-1 block">No Surat Praktik</Label>
+      <div className="flex items-center justify-between border rounded-md px-3 py-2">
+        <div className="flex items-center gap-3">
+
       <Input
+        ref={fileInputRef}
         type="file"
-        accept="application/pdf"
+        accept="image/*,application/pdf"
+        className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
         onChange={(e) => {
+
           const file = e.target.files?.[0]
-          if (file) updateField("fotoKondisiPasien", file)
+          if (!file) return
+
+          // hanya upload 
+          handlePreview(file, "noSuratPraktik")
+          
         }}
       />
     </div>
 
-    {/* KTP Pasien */}
-    <div>
-      <Label>KTP Pasien</Label>
+    {/* ICON PREVIEW */}
+    {formData.noSuratPraktik && (
+      <button
+        type="button"
+        className="p-2 rounded hover:bg-gray-100"
+        onClick={() => {
+
+          // modal hanya muncul dari sini
+          setPreviewFileUrl(formData.noSuratPraktik)
+          setPreviewModal(true)
+
+        }}
+      >
+        <Eye size={18} />
+      </button>
+    )}
+
+  </div>
+</div>
+
+{/* Foto Kondisi Pasien */}
+  <div>
+    <Label className="mb-1 block">Foto Kondisi Pasien</Label>
+      <div className="flex items-center justify-between border rounded-md px-3 py-2">
+        <div className="flex items-center gap-3">
+
       <Input
+        ref={fileInputRef}
         type="file"
-        accept="application/pdf"
+        accept="image/*,application/pdf"
+        className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
         onChange={(e) => {
+
           const file = e.target.files?.[0]
-          if (file) updateField("ktpPasien", file)
+          if (!file) return
+
+          // hanya upload 
+          handlePreview(file, "fotoKondisiPasien")
+          
         }}
       />
     </div>
 
-    {/* Manifest */}
+    {/* ICON PREVIEW */}
+    {formData.fotoKondisiPasien && (
+      <button
+        type="button"
+        className="p-2 rounded hover:bg-gray-100"
+        onClick={() => {
+
+          // modal hanya muncul dari sini
+          setPreviewFileUrl(formData.noSuratPraktik)
+          setPreviewModal(true)
+
+        }}
+      >
+        <Eye size={18} />
+      </button>
+    )}
+
+  </div>
+</div>
+
+
+ {/* KTP Pasien */}
+<div>
+  <Label className="mb-1 block">KTP Pasien</Label>
+  <div className="flex items-center justify-between border rounded-md px-3 py-2">
+    <div className="flex items-center gap-3">
+
+      <Input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,application/pdf"
+        className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
+        onChange={(e) => {
+
+          const file = e.target.files?.[0]
+          if (!file) return
+
+          // hanya upload 
+          handlePreview(file, "ktpPasien")
+          
+        }}
+      />
+    </div>
+
+    {/* ICON PREVIEW */}
+    {formData.ktpPasien && (
+      <button
+        type="button"
+        className="p-2 rounded hover:bg-gray-100"
+        onClick={() => {
+
+          // modal hanya muncul dari sini
+          setPreviewFileUrl(formData.ktpPasien)
+          setPreviewModal(true)
+
+        }}
+      >
+        <Eye size={18} />
+      </button>
+    )}
+
+  </div>
+</div>
+
+    {/* Manifest Private Jet */}
     <div>
       <Label>Manifest Private Jet</Label>
       <Input
         type="file"
         accept="application/pdf"
-        onChange={(e) => {
+        onChange={async (e) => {
           const file = e.target.files?.[0]
-          if (file) updateField("manifetPrivateJet", file)
+          if (!file) return
+          await handleUpload(file, "manifetPrivateJet")
         }}
       />
     </div>
 
-    {/* Rekam Medis */}
+    {/* Rekam Medis Pasien */}
     <div>
       <Label>Rekam Medis Pasien</Label>
       <Input
         type="file"
         accept="application/pdf"
-        onChange={(e) => {
+        onChange={async (e) => {
           const file = e.target.files?.[0]
-          if (file) updateField("rekamMedisPasien", file)
+          if (!file) return
+          await handleUpload(file, "rekamMedisPasien")
         }}
       />
     </div>
@@ -1196,35 +1391,38 @@ function resetForm() {
       <Input
         type="file"
         accept="application/pdf"
-        onChange={(e) => {
+        onChange={async (e) => {
           const file = e.target.files?.[0]
-          if (file) updateField("suratRujukan", file)
+          if (!file) return
+          await handleUpload(file, "suratRujukan")
         }}
       />
     </div>
 
-    {/* Tiket */}
+    {/* Tiket Pesawat */}
     <div>
       <Label>Tiket Pesawat</Label>
       <Input
         type="file"
         accept="application/pdf"
-        onChange={(e) => {
+        onChange={async (e) => {
           const file = e.target.files?.[0]
-          if (file) updateField("tiketPesawat", file)
+          if (!file) return
+          await handleUpload(file, "tiketPesawat")
         }}
       />
     </div>
 
-    {/* Dokumen Medis */}
+    {/* Dokumen Petugas Medis */}
     <div>
       <Label>Dokumen Petugas Medis</Label>
       <Input
         type="file"
         accept="application/pdf"
-        onChange={(e) => {
+        onChange={async (e) => {
           const file = e.target.files?.[0]
-          if (file) updateField("dokumentPetugasMedis", file)
+          if (!file) return
+          await handleUpload(file, "dokumentPetugasMedis")
         }}
       />
     </div>
@@ -1267,6 +1465,56 @@ function resetForm() {
 
       {/* MODAL BERHASIL SUBMIT */}
 
+      <Dialog open={previewModal} onOpenChange={setPreviewModal}>
+  <DialogContent className="max-w-xl">
+
+    <DialogHeader>
+      <DialogTitle>Preview Dokumen</DialogTitle>
+      <DialogDescription>
+        Apakah anda yakin dengan file ini?
+      </DialogDescription>
+    </DialogHeader>
+
+    {previewFileUrl && (
+      <div className="flex justify-center">
+
+        {previewFileUrl.endsWith(".pdf") ? (
+
+          <iframe
+            src={previewFileUrl}
+            className="w-full h-96 border rounded"
+          />
+
+        ) : (
+
+          <img
+            src={previewFileUrl}
+            className="max-h-96 border rounded"
+          />
+
+        )}
+
+      </div>
+    )}
+
+    <div className="flex justify-end gap-3 mt-6">
+
+      <Button
+        variant="outline"
+        onClick={resetPreview}
+      >
+        Upload Ulang
+      </Button>
+
+      <Button onClick={confirmUpload}>
+        Simpan
+      </Button>
+
+    </div>
+
+  </DialogContent>
+</Dialog>
+
 <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
   <DialogContent className="max-w-md">
 
@@ -1299,3 +1547,5 @@ function resetForm() {
     </div>
   );
 }
+
+
