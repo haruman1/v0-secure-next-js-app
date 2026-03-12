@@ -52,6 +52,17 @@ export async function GET(request: NextRequest) {
   }
 }
 
+function extractFileUuid(value: string): string {
+  const normalized = value.trim();
+  const uuidMatch = normalized.match(/-([a-f0-9]{16,})\.[a-zA-Z0-9]+$/);
+
+  if (uuidMatch?.[1]) {
+    return uuidMatch[1];
+  }
+
+  return normalized;
+}
+
 export async function POST(request: NextRequest) {
 
   try {
@@ -148,7 +159,7 @@ export async function POST(request: NextRequest) {
       const value = formData.get(field)
 
       if (typeof value === "string" && value.length > 0) {
-        uploadedFiles[field] = value
+        uploadedFiles[field] = extractFileUuid(value)
       } else {
         uploadedFiles[field] = null
       }
