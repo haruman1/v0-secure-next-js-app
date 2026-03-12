@@ -33,6 +33,8 @@ type EvacuationApplication = {
   noPenerbangan: string | null
   tanggalPerjalanan: string | null
   catatanRevisi?: string | null
+   catatan_revisi?: string | null
+  revisionNotes?: string | null
 }
 
 type EditableForm = {
@@ -50,6 +52,14 @@ const EMPTY_FORM: EditableForm = {
   noPenerbangan: "",
   tanggalPerjalanan: ""
 }
+
+
+function getRevisionNote(application: EvacuationApplication | null | undefined) {
+  if (!application) return ""
+
+  return application.catatanRevisi || application.catatan_revisi || application.revisionNotes || ""
+}
+
 
 function toDateInputValue(value: string | null | undefined) {
   if (!value) return ""
@@ -347,7 +357,7 @@ export default function RevisiPage() {
               <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
                 <p className="text-xs font-semibold text-amber-700 mb-1">Catatan dari Verifikasi</p>
                 <p className="text-amber-900 whitespace-pre-wrap">
-                  {selectedApp.catatanRevisi || "Belum ada catatan revisi."}
+                   {getRevisionNote(selectedApp) || "Belum ada catatan revisi."}
                 </p>
 
               </div>
