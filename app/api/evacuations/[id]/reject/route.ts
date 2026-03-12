@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { getSession } from '@/lib/session';
 
+
+const NOTE_COLUMN_CANDIDATES = [
+  'catatanRevisi',
+  'catatan_revisi',
+  'revisionNotes',
+] as const;
+
+
 export async function POST(
   req: Request,
    { params }: { params: Promise<{ id: string }> },
@@ -34,22 +42,31 @@ export async function POST(
 
     const { id } = await params;
 
-      const hasNoteColumnResult = await query(
-      `SELECT COUNT(*) as total
+      const noteColumnResult = await query(
+      `SELECT COLUMN_NAME
        FROM INFORMATION_SCHEMA.COLUMNS
        WHERE TABLE_SCHEMA = DATABASE()
          AND TABLE_NAME = 'air_medical_evacuation'
-         AND COLUMN_NAME = 'catatanRevisi'`,
+         AND COLUMN_NAME IN (${NOTE_COLUMN_CANDIDATES.map(() => '?').join(',')})`,
+      [...NOTE_COLUMN_CANDIDATES],
+    );
+
+    const availableColumns = new Set(
+      Array.isArray(noteColumnResult)
+        ? noteColumnResult
+            .map((row: any) => (typeof row?.COLUMN_NAME === 'string' ? row.COLUMN_NAME : null))
+            .filter((name: string | null): name is string => Boolean(name))
+        : [],
     );
 
     
-    const hasNoteColumn =
-      Array.isArray(hasNoteColumnResult) &&
-      Number((hasNoteColumnResult[0] as any)?.total || 0) > 0;
+    const noteColumn = NOTE_COLUMN_CANDIDATES.find((column) =>
+      availableColumns.has(column),
+    );
 
-    if (hasNoteColumn) {
+    if (noteColumn) {
       await query(
-        "UPDATE air_medical_evacuation SET status = 'reviewed', catatanRevisi = ? WHERE id = ?",
+        `UPDATE air_medical_evacuation SET status = 'reviewed', ${noteColumn} = ? WHERE id = ?`,
         [catatanRevisi || null, id],
       );
     } else {
