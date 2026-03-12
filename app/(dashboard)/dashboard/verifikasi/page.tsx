@@ -88,8 +88,10 @@ export default function VerifikasiPage() {
       setShowDetail(true);
     }
   }
-
-  async function handleApprove(id: string) {
+async function handleApprove(
+    id: string,
+    redirectToPublication = false,
+  ) {
     const res = await fetch(`/api/evacuations/${id}/approve`, {
       method: 'POST',
       credentials: 'include',
@@ -101,6 +103,9 @@ export default function VerifikasiPage() {
       setApplications((prev) => prev.filter((app) => app.id !== id));
 
       setShowDetail(false);
+      if (redirectToPublication) {
+        router.push('/dashboard/penerbitan');
+      }
     }
   }
 
@@ -227,7 +232,9 @@ export default function VerifikasiPage() {
                       <>
                         <Button
                           size="sm"
-                          onClick={() => handleApprove(app.id)}
+                           onClick={() =>
+                            handleApprove(app.id, true)
+                          }
                         >
                           Setujui
                         </Button>
@@ -321,7 +328,9 @@ export default function VerifikasiPage() {
           {user?.role === 'admin' && selectedApp && (
             <DialogFooter>
               <Button
-                onClick={() => handleApprove(selectedApp.id)}
+                onClick={() =>
+                  handleApprove(selectedApp.id, true)
+                }
               >
                 Setujui
               </Button>
