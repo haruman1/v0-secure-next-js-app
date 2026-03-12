@@ -1,259 +1,238 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from './context/auth-context';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "./context/auth-context"
+import { Button } from "@/components/ui/button"
+
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+  CardContent,
+  CardDescription
+} from "@/components/ui/card"
+
 import {
-  AlertCircle,
-  CheckCircle2,
-  Shield,
-  Zap,
+  Ambulance,
+  HeartPulse,
+  ShieldCheck,
+  Clock3,
   Users,
-  BarChart3,
-} from 'lucide-react';
+  ArrowRight
+} from "lucide-react"
+
+const features = [
+  {
+    icon: HeartPulse,
+    title: "Evakuasi Cepat",
+    description:
+      "Ajukan permintaan evakuasi medis hanya dalam beberapa menit."
+  },
+  {
+    icon: ShieldCheck,
+    title: "Sistem Aman",
+    description:
+      "Autentikasi aman dengan pencatatan aktivitas untuk setiap proses."
+  },
+  {
+    icon: Users,
+    title: "Kolaborasi Tim",
+    description:
+      "Dokter, operator, dan admin dapat memantau status evakuasi bersama."
+  }
+]
 
 export default function Home() {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (!isLoading && user) {
-      router.push('/dashboard');
+  const { user, isLoading } = useAuth()
+  const router = useRouter()
+  const typingText = "Medical Integrated Evacuation"
+  const [text,setText] = useState("")
+  const [index,setIndex] = useState(0)
+
+  useEffect(()=>{
+    if(index < typingText.length){
+      const timeout = setTimeout(()=>{
+        setText(prev => prev + typingText[index])
+        setIndex(index + 1)
+      },40)
+
+      return ()=> clearTimeout(timeout)
     }
-  }, [user, isLoading, router]);
+  },[index])
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="text-primary text-lg font-semibold">Loading...</div>
-        </div>
-      </div>
-    );
-  }
+  useEffect(()=>{
+    if(!isLoading && user){
+      router.push("/dashboard")
+    }
+  },[user,isLoading])
 
-  if (user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="text-primary text-lg font-semibold">
-            Redirecting...
-          </div>
-        </div>
+  if(isLoading){
+    return(
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Memuat aplikasi...</p>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-              M
+
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-sky-100">
+
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/60 border-b border-white/30">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-sky-500 text-white flex items-center justify-center">
+              <Ambulance className="h-5 w-5"/>
             </div>
-            <span className="font-bold text-lg text-foreground">
-              Medical Evacuation System
-            </span>
+
+            <div>
+              <p className="font-semibold text-lg">Medivaq</p>
+              <p className="text-xs text-muted-foreground">
+                Medical Evacuation Platform
+              </p>
+            </div>
+
           </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => router.push('/auth/login')}>
-              Sign In
+
+          <div className="flex gap-3">
+
+            <Button
+              variant="ghost"
+              onClick={()=>router.push("/auth/login")}
+            >
+              Login
             </Button>
-            <Button onClick={() => router.push('/auth/register')}>
-              Get Started
+
+            <Button
+              className="bg-sky-500 hover:bg-sky-600 text-white"
+              onClick={()=>router.push("/auth/register")}
+            >
+              Daftar
             </Button>
+
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Hero Content */}
-        <div className="text-center mb-16 space-y-6">
-          <h1 className="text-5xl sm:text-6xl font-bold text-foreground leading-tight">
-            Medical Evacuation
-            <span className="block text-primary">Made Simple</span>
+      {/* HERO */}
+      <section className="max-w-7xl mx-auto px-6 py-28 grid lg:grid-cols-2 gap-14 items-center">
+        <div className="space-y-6">
+          <span className="bg-sky-100 text-sky-700 px-4 py-1 rounded-full text-sm">
+            Sistem Evakuasi Medis Digital
+          </span>
+
+          <h1 className="text-5xl font-bold leading-tight">
+            {text}
+            <span className="animate-pulse text-sky-500">|</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            A secure, efficient system for managing medical evacuation requests
-            with real-time tracking and admin oversight.
+
+          <p className="text-lg text-muted-foreground max-w-xl">
+              Platform digital untuk mengelola permintaan evakuasi medis dengan 
+              lebih cepat, transparan, dan terstruktur, sehingga proses penanganan 
+              pasien dapat dilakukan secara lebih efektif.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button size="lg" onClick={() => router.push('/auth/register')}>
-              Create Account
+
+          <div className="flex gap-4">
+            <Button
+              size="lg"
+              className="bg-sky-500 hover:bg-sky-600 text-white"
+              onClick={()=>router.push("/auth/register")}
+            >
+              Ajukan Evakuasi
+              <ArrowRight className="ml-2 h-4 w-4"/>
             </Button>
+
             <Button
               size="lg"
               variant="outline"
-              onClick={() => router.push('/auth/login')}
+              onClick={()=>router.push("/auth/login")}
             >
-              Sign In
+              Masuk Sistem
             </Button>
           </div>
         </div>
 
-        {/* Demo Credentials */}
-        <Card className="mb-16 bg-muted/50 border-muted">
+        {/* CARD INFO */}
+        <Card className="border-sky-200 shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-primary" />
-              Demo Credentials
+              <Clock3 className="h-5 w-5 text-sky-500"/>
+              Monitoring Evakuasi
             </CardTitle>
+
+            <CardDescription>
+              Pantau status evakuasi secara real-time
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="grid grid-cols-3 text-center gap-4">
+
             <div>
-              <p className="text-sm font-medium text-foreground">
-                Admin Account:
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Email:{' '}
-                <code className="bg-card px-2 py-1 rounded">
-                  admin@example.com
-                </code>
-                <br />
-                Password:{' '}
-                <code className="bg-card px-2 py-1 rounded">admin123</code>
-              </p>
+              <p className="text-2xl font-bold text-sky-500">24/7</p>
+              <p className="text-xs text-muted-foreground">Monitoring</p>
             </div>
+
+            <div>
+              <p className="text-2xl font-bold text-emerald-500">10m</p>
+              <p className="text-xs text-muted-foreground">Respon Admin</p>
+            </div>
+
+            <div>
+              <p className="text-2xl font-bold text-sky-500">3 Step</p>
+              <p className="text-xs text-muted-foreground">Approval</p>
+            </div>
+
           </CardContent>
         </Card>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          <Card>
+      </section>
+
+      {/* FEATURES */}
+      <section className="max-w-7xl mx-auto px-6 pb-24 grid md:grid-cols-3 gap-6">
+        {features.map((feature)=>(
+          <Card
+            key={feature.title}
+            className="hover:shadow-xl transition duration-300"
+          >
+
             <CardHeader>
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <Zap className="h-6 w-6 text-primary" />
+
+              <div className="h-10 w-10 bg-sky-100 text-sky-500 rounded-lg flex items-center justify-center mb-2">
+                <feature.icon className="h-5 w-5"/>
               </div>
-              <CardTitle>Quick Requests</CardTitle>
+
+              <CardTitle>{feature.title}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Create evacuation requests in minutes with our intuitive form
-                interface.
+                {feature.description}
               </p>
             </CardContent>
           </Card>
+        ))}
 
-          <Card>
-            <CardHeader>
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <Shield className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle>Secure & Compliant</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Enterprise-grade security with encrypted sessions and audit
-                logging for compliance.
-              </p>
-            </CardContent>
-          </Card>
+      </section>
 
-          <Card>
-            <CardHeader>
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle>Role-Based Access</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Separate admin and user interfaces with appropriate permissions
-                and controls.
-              </p>
-            </CardContent>
-          </Card>
+      {/* CTA */}
+      <section className="bg-sky-500 text-white py-20 text-center">
+        <h2 className="text-3xl font-bold mb-4">
+          Siap Mengelola Evakuasi Medis?
+        </h2>
 
-          <Card>
-            <CardHeader>
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <CheckCircle2 className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle>Status Tracking</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Track evacuation status from pending to completion with
-                real-time updates.
-              </p>
-            </CardContent>
-          </Card>
+        <p className="opacity-90 mb-6">
+          Buat akun sekarang dan ajukan permintaan evakuasi pasien.
+        </p>
 
-          <Card>
-            <CardHeader>
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <BarChart3 className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle>Analytics Dashboard</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                View comprehensive statistics and insights on evacuation
-                requests and priorities.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <AlertCircle className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle>Priority Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Categorize requests by priority level (Low, Medium, High,
-                Critical) for better management.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* CTA Section */}
-        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-          <CardContent className="pt-8 text-center space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground mb-2">
-                Ready to get started?
-              </h2>
-              <p className="text-muted-foreground">
-                Join the Medical Evacuation System and streamline your medical
-                transport operations.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" onClick={() => router.push('/auth/register')}>
-                Create Your Account
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => router.push('/auth/login')}
-              >
-                Already have an account?
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border bg-muted/50 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-muted-foreground text-sm">
-          <p>&copy; 2024 Medical Evacuation System. All rights reserved.</p>
-        </div>
-      </footer>
+        <Button
+          size="lg"
+          variant="secondary"
+          onClick={()=>router.push("/auth/register")}
+        >
+          Mulai Sekarang
+        </Button>
+      </section>
     </div>
-  );
+  )
 }
