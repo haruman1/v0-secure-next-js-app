@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS air_medical_evacuation (
   INDEX idx_user_id (user_id),
   INDEX idx_status (status),
   INDEX idx_tanggal_perjalanan (tanggalPerjalanan)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Password Reset Tokens table
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
