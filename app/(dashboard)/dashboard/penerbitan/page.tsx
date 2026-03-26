@@ -33,6 +33,7 @@ type PublicationItem = {
   surat_izin_terbit?: string | null;
   suratIzin?: string | null;
   surat_izin?: string | null;
+  suratPenerbitan?: string | null;
 };
 
 
@@ -69,6 +70,7 @@ function formatTanggalID(dateString?: string | null): string {
 
 function getPublicationDocument(app: PublicationItem): string | null {
   return (
+    app.suratPenerbitan ||
     app.dokumenPenerbitan ||
     app.dokumen_penerbitan ||
     app.suratIzinTerbit ||
@@ -108,7 +110,8 @@ export default function PenerbitanPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/evacuations?status=valid', {
+      const publishedOnly = user?.role === 'admin' ? 'false' : 'true';
+      const res = await fetch(`/api/publications?status=valid&publishedOnly=${publishedOnly}`, {
         credentials: 'include',
       });
       const result = await res.json();
