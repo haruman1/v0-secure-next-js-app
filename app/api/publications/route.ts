@@ -50,12 +50,24 @@ export async function GET(request: NextRequest) {
           const detail = parseDetails(row.details);
           return [row.entity_id as string, detail.filePath || ''];
         }),
+      );    publicationMap = (Array.isArray(logs) ? logs : []).reduce(
+        (map, row: any) => {
+          const entityId = String(row.entity_id);
+          if (map.has(entityId)) {
+            return map;
+          }
+
+          const detail = parseDetails(row.details);
+          map.set(entityId, detail.filePath || '');
+          return map;
+        },
+        new Map<string, string>(),
       );
     }
 
     const mappedData = (Array.isArray(evacuations) ? evacuations : []).map((item: any) => ({
       ...item,
-      suratPenerbitan: publicationMap.get(item.id) || null,
+     suratPenerbitan: publicationMap.get(String(item.id)) || null,
     }));
 
     const data = publishedOnly
