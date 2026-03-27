@@ -33,7 +33,7 @@ jobs:
 
       - name: Install deps & build
         run: |
-          bun install --frozen-lockfile
+          bun install
           bun run build
 
       - name: Archive build output
