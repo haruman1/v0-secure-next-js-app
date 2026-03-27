@@ -24,6 +24,55 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+
+type RawAppItem = Record<string, unknown>;
+
+function normalizeStatus(status: unknown): AppItem['status'] {
+  if (status === 'valid' || status === 'reviewed' || status === 'pending' || status === 'canceled') {
+    return status;
+  }
+
+  if (status === 'approved') return 'valid';
+  if (status === 'cancelled') return 'canceled';
+
+  return 'pending';
+}
+
+function mapApplication(item: RawAppItem): AppItem {
+  const idValue = item.id;
+
+  return {
+    id: typeof idValue === 'string' ? idValue : String(idValue ?? ''),
+    namaPasien:
+      typeof item.namaPasien === 'string'
+        ? item.namaPasien
+        : typeof item.nama_pasien === 'string'
+          ? item.nama_pasien
+          : typeof item.patient_name === 'string'
+            ? item.patient_name
+            : null,
+    noPenerbangan:
+      typeof item.noPenerbangan === 'string'
+        ? item.noPenerbangan
+        : typeof item.no_penerbangan === 'string'
+          ? item.no_penerbangan
+          : null,
+    tanggalPerjalanan:
+      typeof item.tanggalPerjalanan === 'string'
+        ? item.tanggalPerjalanan
+        : typeof item.tanggal_perjalanan === 'string'
+          ? item.tanggal_perjalanan
+          : null,
+    status: normalizeStatus(item.status),
+    catatanRevisi:
+      typeof item.catatanRevisi === 'string' ? item.catatanRevisi : null,
+    catatan_revisi:
+      typeof item.catatan_revisi === 'string' ? item.catatan_revisi : null,
+    revisionNotes:
+      typeof item.revisionNotes === 'string' ? item.revisionNotes : null,
+  };
+}
+
 type AppItem = {
   id: string;
   namaPasien: string | null;
