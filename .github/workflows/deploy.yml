@@ -49,7 +49,7 @@ jobs:
           source: 'dist-medivaq.tar.gz'
           target: '/tmp/deploy'
 
-      - name: Deploy on VPS (untar and write runtime .env)
+      - name: Deploy on VPS ( and write runtime .env)
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
