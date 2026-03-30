@@ -1,0 +1,62 @@
+const NODE = '/www/server/nvm/versions/node/v24.14.0/bin/node';
+const SCRIPT = '/www/wwwroot/medivaq/current/.next/standalone/server.js';
+
+module.exports = {
+  apps: [
+    {
+      name: 'sso-medivaq-3005',
+      script: SCRIPT,
+      interpreter: NODE,
+      cwd: './next/standalone',
+      exec_mode: 'fork',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      env: { PORT: 3005, AUTH_TRUST_HOST: 'true', NODE_ENV: 'production' },
+    },
+    {
+      name: 'sso-medivaq-3006',
+      script: SCRIPT,
+      interpreter: NODE,
+      cwd: './next/standalone',
+      exec_mode: 'fork',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      env: { AUTH_TRUST_HOST: 'true', NODE_ENV: 'production', PORT: 3006 },
+    },
+    {
+      name: 'sso-medivaq-3007',
+      script: SCRIPT,
+      interpreter: NODE,
+      cwd: './next/standalone',
+      exec_mode: 'fork',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      env: { AUTH_TRUST_HOST: 'true', NODE_ENV: 'production', PORT: 3007 },
+    },
+    {
+      name: 'sso-medivaq-3008',
+      script: SCRIPT,
+      interpreter: NODE,
+      cwd: './next/standalone',
+      exec_mode: 'fork',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      env: { AUTH_TRUST_HOST: 'true', NODE_ENV: 'production', PORT: 3008 },
+    },
+    {
+      name: 'sso-medivaq-3009',
+      script: SCRIPT,
+      interpreter: NODE,
+      exec_mode: 'fork',
+      cwd: './next/standalone',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      env: { AUTH_TRUST_HOST: 'true', NODE_ENV: 'production', PORT: 3009 },
+    },
+  ],
+};
