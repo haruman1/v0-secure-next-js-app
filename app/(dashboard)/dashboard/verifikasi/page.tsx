@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/auth-context';
-
+import Swal from 'sweetalert2';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  
 } from '@/components/ui/card';
 
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { set } from 'date-fns';
 
 
 type RawAppItem = Record<string, unknown>;
@@ -91,7 +93,7 @@ export default function VerifikasiPage() {
   const [applications, setApplications] = useState<AppItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<AppItem | null>(null);
-
+  const [loadingAction, setLoadingAction] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [showRevisiModal, setShowRevisiModal] = useState(false);
 
@@ -101,8 +103,11 @@ export default function VerifikasiPage() {
 
   useEffect(() => {
     if (authLoading) return;
+
     fetchApplications();
   }, [authLoading, user?.role]);
+
+  
 
   async function fetchApplications() {
     setLoading(true);
@@ -141,13 +146,19 @@ async function handleApprove(
     id: string,
     redirectToPublication = false,
   ) {
+    setLoadingAction(true);
     const res = await fetch(`/api/evacuations/${id}/approve`, {
       method: 'POST',
       credentials: 'include',
     });
 
     if (res.ok) {
-      alert('Permohonan disetujui');
+     Swal.fire({
+        title: 'Berhasil',
+        text: 'Permohonan disetujui',
+        icon: 'success',
+        confirmButtonText: 'OK',
+     })
 
       setApplications((prev) => prev.filter((app) => app.id !== id));
 
@@ -185,6 +196,7 @@ async function handleApprove(
         setShowRevisiModal(false);
         setShowDetail(false);
         setRevisiNote('');
+
       }
     } finally {
       setSubmittingRevisi(false);
@@ -378,8 +390,11 @@ async function handleApprove(
             <DialogFooter>
               <Button
                 onClick={() =>
-                  handleApprove(selectedApp.id, true)
+                  // handleApprove(selectedApp.id, true)
+                  loadingAction ? null : handleApprove(selectedApp.id, true)
                 }
+                disabled={loadingAction}
+               
               >
                 Setujui
               </Button>

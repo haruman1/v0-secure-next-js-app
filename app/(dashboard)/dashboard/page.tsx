@@ -34,28 +34,22 @@ export default function Dashboard() {
   const stats = [
     {
       label: 'Verifikasi',
-      value: getApplicationsByStatus('verification').length.toString(),
+      value: getApplicationsByStatus('pending').length.toString(),
       icon: CheckCircle,
       color: 'bg-yellow-500',
       show: true,
     },
     {
       label: 'Revisi',
-      value: getApplicationsByStatus('revision').length.toString(),
+      value: getApplicationsByStatus('reviewed').length.toString(),
       icon: Edit,
       color: 'bg-orange-500',
       show: true,
     },
-    {
-      label: 'Draft',
-      value: getApplicationsByStatus('draft').length.toString(),
-      icon: FilePlus,
-      color: 'bg-gray-500',
-      show: !isAdmin, // hanya user
-    },
+   
     {
       label: 'Penerbitan',
-      value: getApplicationsByStatus('publication').length.toString(),
+      value: getApplicationsByStatus('valid').length.toString(),
       icon: FileCheck,
       color: 'bg-green-500',
       show: isAdmin,

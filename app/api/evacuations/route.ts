@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     // Get user role
     const userResults = await query('SELECT role FROM users WHERE id = ?', [
-      String(session.userId),
+      session.userId,
     ]);
 
     if (!Array.isArray(userResults) || userResults.length === 0) {
@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
 
     await logAuditEvent(
 
-      session.userId,
+      String(session.userId),
       "EVACUATION_REQUEST_CREATED",
       "air_medical_evacuation",
       evacuationId,
