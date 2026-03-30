@@ -1,13 +1,22 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { Providers } from './providers';
 import '../styles/globals.css';
 
 import { Plus_Jakarta_Sans } from "next/font/google";
 
-const geist = Geist({ subsets: ['latin'] });
-const geistMono = Geist_Mono({ subsets: ['latin'] });
+const PoppinsFont = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins',
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400","500","600","700"],
+  variable: "--font-jakarta",
+});
 
 export const metadata: Metadata = {
   title: 'Medical Integrated Evacuation',
@@ -21,7 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geist.className} ${geistMono.className} antialiased`}>
+      <body className={`${PoppinsFont.className} ${jakarta.className} antialiased`}>
         <Providers>{children}</Providers>
         <Analytics />
       </body>
@@ -29,9 +38,5 @@ export default function RootLayout({
   );
 }
 
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400","500","600","700"],
-  variable: "--font-jakarta",
-});
+
 

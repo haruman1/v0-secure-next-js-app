@@ -33,7 +33,6 @@ type PublicationItem = {
   surat_izin_terbit?: string | null;
   suratIzin?: string | null;
   surat_izin?: string | null;
-  suratPenerbitan?: string | null;
 };
 
 
@@ -70,7 +69,6 @@ function formatTanggalID(dateString?: string | null): string {
 
 function getPublicationDocument(app: PublicationItem): string | null {
   return (
-    app.suratPenerbitan ||
     app.dokumenPenerbitan ||
     app.dokumen_penerbitan ||
     app.suratIzinTerbit ||
@@ -110,8 +108,7 @@ export default function PenerbitanPage() {
     setLoading(true);
 
     try {
-      const publishedOnly = user?.role === 'admin' ? 'false' : 'true';
-      const res = await fetch(`/api/publications?status=valid&publishedOnly=${publishedOnly}`, {
+      const res = await fetch('/api/evacuations?status=valid', {
         credentials: 'include',
       });
       const result = await res.json();
@@ -123,7 +120,14 @@ export default function PenerbitanPage() {
       setLoading(false);
     }
   }
-
+async function safeJson(res: Response) {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Invalid JSON response: ${text.slice(0, 200)}`);
+  }
+}
   async function handleUploadResultDocument(appId: string) {
     const file = selectedFiles[appId];
 
@@ -145,7 +149,7 @@ export default function PenerbitanPage() {
         credentials: 'include',
       });
 
-      const uploadResult = await uploadRes.json();
+      const uploadResult = await safeJson(uploadRes);
 
       if (!uploadRes.ok || !uploadResult?.data?.path) {
         throw new Error(uploadResult?.error || 'Upload dokumen gagal');

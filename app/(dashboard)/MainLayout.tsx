@@ -33,7 +33,7 @@ const adminNavItems = [
 const userNavItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/dashboard/permohonan', label: 'Permohonan', icon: BookPlus },
-  { path: '/dashboard/draft', label: 'Draft', icon: FilePlus },
+  
   { path: '/dashboard/verifikasi', label: 'Verifikasi', icon: CheckCircle },
   { path: '/dashboard/revisi', label: 'Revisi', icon: Edit },
   { path: '/dashboard/penerbitan', label: 'Penerbitan', icon: FileCheck },

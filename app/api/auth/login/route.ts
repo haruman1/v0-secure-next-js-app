@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     if (!Array.isArray(results) || results.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid credentials', message: 'loginFailedDesc' },
+        { error: 'Password / Email salah', message: 'loginFailedDesc' },
         { status: 401 },
       );
     }
@@ -43,17 +43,17 @@ export async function POST(request: NextRequest) {
       const userAgent = request.headers.get('user-agent') || '';
 
       await logAuditEvent(
-        null,
+        user.id,
         'FAILED_LOGIN_ATTEMPT',
         'users',
-        null,
+        user.id,
         { email, reason: 'invalid_password' },
         ipAddress,
         userAgent,
       );
 
       return NextResponse.json(
-        { error: 'Invalid credentials', message: 'loginFailedDesc' },
+        { error: 'Password / Email salah', message: 'loginFailedDesc' },
         { status: 401 },
       );
     }

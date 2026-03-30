@@ -11,7 +11,7 @@ import {
 export interface Application {
   id: string;
 
-  status: "draft" | "verification" | "revision" | "publication" | "completed";
+  status: "pending" | "valid" | "canceled" | "reviewed" | "completed";
 
   createdAt: string;
   updatedAt: string;
@@ -205,21 +205,21 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
 
   const moveToVerification = async (id: string) => {
     await updateApplication(id, {
-      status: "verification",
+      status: "pending",
       revisionNotes: undefined
     });
   };
 
   const moveToRevision = async (id: string, notes: string) => {
     await updateApplication(id, {
-      status: "revision",
+      status: "reviewed",
       revisionNotes: notes
     });
   };
 
   const moveToPublication = async (id: string) => {
     await updateApplication(id, {
-      status: "publication"
+      status: "valid"
     });
   };
 

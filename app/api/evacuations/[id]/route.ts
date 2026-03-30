@@ -203,3 +203,62 @@ let updated = false;
     );
   }
 }
+export async function POST(request: NextRequest) {
+
+  try {
+    const session = await getSession()
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+    const formData = await request.formData()
+    const namaPasien = formData.get('namaPasien') as string;
+    const jenisLayanan = formData.get('jenisLayanan') as string;
+    const namaMaskapai = formData.get('namaMaskapai') as string;
+    const noPenerbangan = formData.get('noPenerbangan') as string;
+    const tanggalPerjalanan = formData.get('tanggalPerjalanan') as string;
+
+    if (!namaPasien || !tanggalPerjalanan) {
+      return NextResponse.json(
+        { error: 'Nama pasien dan tanggal perjalanan wajib diisi' },
+        { status: 400 },
+      );
+    }
+    if (!jenisLayanan) {
+      return NextResponse.json(
+        { error: 'Jenis layanan wajib diisi' },
+        { status: 400 },
+      );
+    }
+    try{
+      const result = (await query(
+        `INSERT INTO air_medical_evacuation
+         (user_id, namaPasien, jenisLayanan, namaMaskapai, noPenerbangan, tanggalPerjalanan, status)
+         VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
+        [
+          String(session.userId),
+          namaPasien,
+          jenisLayanan,
+          namaMaskapai,
+          noPenerbangan,
+          tanggalPerjalanan,
+        ]
+      )) as any;
+    } catch (error) {
+      console.error('Insert evacuation error:', error);
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 },
+      );
+      }
+  } catch (error) {
+    console.error('Create evacuation error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    );
+  }
+}
