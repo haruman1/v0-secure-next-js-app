@@ -11,10 +11,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Create .env.local for build
         run: |
@@ -26,23 +24,26 @@ jobs:
           DB_NAME=${{ secrets.DB_NAME }}
           APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
           EOF
+          chmod 600 .env.local
 
       - name: Install deps & build
         run: |
-          npm ci
-          npm run build
-
-      - name: Validate standalone build
+          bun install
+          bun run build
+      # ✅ VALIDASI (PENTING BANGET)
+      - name: Validate standalone
         run: |
           if [ ! -f ".next/standalone/server.js" ]; then
-            echo "❌ Standalone build failed"
+            echo "❌ server.js not found!"
             exit 1
           fi
-
+            if [ ! -d ".next/standalone/node_modules" ]; then
+              echo "❌ node_modules not found!"
+              exit 1
+            fi
       - name: Archive build output
         run: |
           cp -r public .next/standalone/
-          mkdir -p .next/standalone/.next
           cp -r .next/static .next/standalone/.next/
           tar -czf dist-medivaq.tar.gz -C .next/standalone .
 
@@ -63,5 +64,17 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
+          envs: DB_HOST,DB_USER,DB_PASSWORD,DB_NAME,APP_URL,EMAIL_HOST,EMAIL_PORT,EMAIL_USER,EMAIL_PASSWORD,EMAIL_FROM
           script: |
             bash /tmp/deploy/DEPLOY.SH
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
