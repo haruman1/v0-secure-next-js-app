@@ -51,8 +51,8 @@ ls -dt */ | tail -n +6 | xargs rm -rf
 
 # Restart service using PM2
 echo "Reloading PM2 service"
-# Note: Ensure the path to ecosystem.config.js is correct relative to the script
-/www/server/nvm/versions/node/v24.14.0/bin/pm2 startOrReload "$APP_DIR/ecosystem.config.js" --update-env
+# Note: Ensure the path to ecosystem.config.cjs is correct relative to the script
+/www/server/nvm/versions/node/v24.14.0/bin/pm2 startOrReload "$APP_DIR/ecosystem.config.cjs" --update-env
 
 echo "Saving PM2 state"
 /www/server/nvm/versions/node/v24.14.0/bin/pm2 save
