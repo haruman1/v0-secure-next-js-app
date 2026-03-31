@@ -57,7 +57,7 @@ jobs:
           source: 'dist-medivaq.tar.gz,DEPLOY.SH'
           target: '/tmp/deploy'
 
-      - name: Deploy on VPS
+      - name: Deploy on VPS NEW
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
