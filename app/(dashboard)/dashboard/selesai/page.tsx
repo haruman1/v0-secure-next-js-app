@@ -68,7 +68,7 @@ export default function SelesaiPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Selesai</h1>
         <p className="text-gray-600">
-          Daftar permohonan yang sudah terbit suratnya dan selesai diproses
+          Daftar permohonan yang sudah terbit suratnya dan telah selesai diproses
         </p>
       </div>
 
