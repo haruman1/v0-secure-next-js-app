@@ -43,7 +43,10 @@ jobs:
             fi
       - name: Archive build output
         run: |
-          tar -czf dist-medivaq.tar.gz .next/standalone .next/static public package.json bun.lock
+          cp -r public .next/standalone/
+          mkdir -p .next/standalone/.next
+          cp -r .next/static .next/standalone/.next/
+          tar -czf dist-medivaq.tar.gz -C .next/standalone .
 
       - name: Copy build to VPS
         uses: appleboy/scp-action@v0.1.7

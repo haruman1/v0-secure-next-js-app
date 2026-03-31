@@ -1,29 +1,29 @@
 #!/bin/bash
+set -e
 
-# Configuration
 APP_DIR="/www/wwwroot/medivaq"
 RELEASES_DIR="$APP_DIR/releases"
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 RELEASE_DIR="$RELEASES_DIR/$TIMESTAMP"
 
-echo "=============================="
 echo "Deploy started at $TIMESTAMP"
-echo "=============================="
 
-# Create release directory
-echo "Create release folder"
+# create release
 mkdir -p "$RELEASE_DIR"
 
-# Extract build
-echo "Extract build"
+# extract
 tar -xzf /tmp/deploy/dist-medivaq.tar.gz -C "$RELEASE_DIR"
 
-# Update symlink
-echo "Update current symlink"
+# VALIDASI
+if [ ! -f "$RELEASE_DIR/server.js" ]; then
+  echo "❌ server.js not found!"
+  exit 1
+fi
+
+# symlink
 ln -sfn "$RELEASE_DIR" "$APP_DIR/current"
 
-# Create .env file for runtime
-echo "Generating .env file"
+# env
 cat > "$APP_DIR/current/.env" <<EOF
 NODE_ENV=production
 DB_HOST=$DB_HOST
@@ -40,23 +40,16 @@ EOF
 
 chmod 600 "$APP_DIR/current/.env"
 
-# Cleanup tmp files
-echo "Cleanup tmp files"
-rm -f /tmp/deploy/dist-medivaq.tar.gz /tmp/deploy/DEPLOY.SH
+echo "Reload PM2 ecosystem"
+/www/server/nvm/versions/node/v24.14.0/bin/pm2 startOrReload /www/wwwroot/medivaq/ecosystem.config.cjs --update-env
 
-# Keep last 5 releases
-echo "Removing old releases"
-cd "$RELEASES_DIR" || exit
-ls -dt */ | tail -n +6 | xargs rm -rf
-
-# Restart service using PM2
-echo "Reloading PM2 service"
-# Note: Ensure the path to ecosystem.config.cjs is correct relative to the script
-/www/server/nvm/versions/node/v24.14.0/bin/pm2 startOrReload "$APP_DIR/ecosystem.config.cjs" --update-env
-
-echo "Saving PM2 state"
+echo "Save PM2"
 /www/server/nvm/versions/node/v24.14.0/bin/pm2 save
 
-echo "=============================="
+echo "Cleanup old releases"
+# cleanup
+rm -f /tmp/deploy/dist-medivaq.tar.gz /tmp/deploy/DEPLOY.SH
+cd "$RELEASES_DIR"
+ls -dt */ | tail -n +6 | xargs rm -rf
+
 echo "Deploy success!"
-echo "=============================="
