@@ -23,11 +23,6 @@ jobs:
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           DB_NAME=${{ secrets.DB_NAME }}
           APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
-          EMAIL_HOST=${{ secrets.EMAIL_HOST }}
-          EMAIL_PORT=${{ secrets.EMAIL_PORT }}
-          EMAIL_USER=${{ secrets.EMAIL_USER }}
-          EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_FROM=${{ secrets.EMAIL_FROM }}
           EOF
           chmod 600 .env.local
 
@@ -37,7 +32,10 @@ jobs:
           bun run build
 
       - name: Archive build output
-        run: tar -czf dist-medivaq.tar.gz .next package.json public next.config.mjs
+        run: |
+          cp -r public .next/standalone/
+          cp -r .next/static .next/standalone/.next/
+          tar -czf dist-medivaq.tar.gz -C .next/standalone .
 
       - name: Copy build to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -46,15 +44,27 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
-          source: 'dist-medivaq.tar.gz'
+          source: 'dist-medivaq.tar.gz,DEPLOY.SH'
           target: '/tmp/deploy'
 
-      - name: Deploy on VPS ( write runtime .env)
+      - name: Deploy on VPS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
+          envs: DB_HOST,DB_USER,DB_PASSWORD,DB_NAME,APP_URL,EMAIL_HOST,EMAIL_PORT,EMAIL_USER,EMAIL_PASSWORD,EMAIL_FROM
           script: |
-            bash /www/wwwroot/deploy-medivaq.sh
+            bash /tmp/deploy/DEPLOY.SH
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
