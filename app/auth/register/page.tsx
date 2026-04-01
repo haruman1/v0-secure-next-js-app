@@ -125,7 +125,7 @@ export default function RegisterPage() {
           </div>
 
           <CardTitle className="text-2xl font-semibold">
-            Buat Akun Medivaq
+            Buat Akun Medivac
           </CardTitle>
 
           <CardDescription>
