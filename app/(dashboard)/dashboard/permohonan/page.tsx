@@ -543,13 +543,7 @@ const isPdfPreview =
 
   if (authLoading) return null
 
-  if (user?.role === "admin") {
-    return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold mb-2">Akses Ditolak</h1>
-        <p className="text-gray-600">Fitur permohonan hanya untuk user.</p>
-      </div>
-    )
+  
   }
 
   /* ===============================
