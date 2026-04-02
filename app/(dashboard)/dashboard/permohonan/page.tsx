@@ -173,6 +173,23 @@ export default function PermohonanPage() {
       language === 'id'
         ? 'Contoh: Nama Tenaga medis- No SIP'
         : 'Example: Medical Personnel Name - Permit Number',
+    /* New Document Labels */
+    practiceLicense:
+      language === 'id'
+        ? 'Surat Izin praktik pendamping medis yang berlaku valid (yang berlaku)'
+        : 'Valid medical companion practice license',
+    referralLetter:
+      language === 'id'
+        ? 'Surat Rujukan / Surat penerimaan dari rumah sakit tujuan'
+        : 'Referral Letter / Acceptance letter from destination hospital',
+    manifestTicket:
+      language === 'id'
+        ? 'Manifest / Tiket Pesawat untuk komersil (digabung ajah) (Nomor pernerbangan dan rute perjalanan)'
+        : 'Manifest / Flight Ticket for commercial (combined) (Flight number and route)',
+    medicalOfficerDoc:
+      language === 'id'
+        ? 'Dokumen Petugas Medis (Sertifikat Pelatihan kegawat daruratan / Keahlian Medivac)'
+        : 'Medical Officer Documents (Emergency Training Certificate / Medivac Expertise)',
   };
 
   /* ===============================
@@ -1072,9 +1089,9 @@ export default function PermohonanPage() {
             <div className="space-y-6">
               <h2 className="text-xl font-semibold">{t.uploadDocuments}</h2>
 
-              {/* No Surat Praktik */}
+              {/* Surat Izin Praktik */}
               <div>
-                <Label className="mb-1 block">No Surat Praktik</Label>
+                <Label className="mb-1 block">{t.practiceLicense}</Label>
                 <div className="flex items-center justify-between border rounded-md px-3 py-2">
                   <div className="flex items-center gap-3">
                     <Input
@@ -1184,9 +1201,9 @@ export default function PermohonanPage() {
                 </div>
               </div>
 
-              {/* Manifest Private Jet */}
+              {/* Manifest / Tiket Pesawat */}
               <div>
-                <Label className="mb-1 block">Manifest Private Jet</Label>
+                <Label className="mb-1 block">{t.manifestTicket}</Label>
                 <div className="flex items-center justify-between border rounded-md px-3 py-2">
                   <div className="flex items-center gap-3">
                     <Input
@@ -1260,7 +1277,7 @@ export default function PermohonanPage() {
 
               {/* Surat Rujukan */}
               <div>
-                <Label className="mb-1 block">Surat Rujukan</Label>
+                <Label className="mb-1 block">{t.referralLetter}</Label>
                 <div className="flex items-center justify-between border rounded-md px-3 py-2">
                   <div className="flex items-center gap-3">
                     <Input
@@ -1295,46 +1312,9 @@ export default function PermohonanPage() {
                 </div>
               </div>
 
-              {/* Tiket Pesawat */}
-              <div>
-                <Label className="mb-1 block">Tiket Pesawat</Label>
-                <div className="flex items-center justify-between border rounded-md px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <Input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-
-                        // hanya upload
-                        handlePreview(file, 'tiketPesawat');
-                      }}
-                    />
-                  </div>
-
-                  {/* ICON PREVIEW */}
-                  {formData.tiketPesawat && (
-                    <button
-                      type="button"
-                      className="p-2 rounded hover:bg-gray-100"
-                      onClick={() => {
-                        // modal hanya muncul dari sini
-                        setPreviewFileUrl(formData.tiketPesawat);
-                        setPreviewModal(true);
-                      }}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
               {/* Dokumen Petugas Medis */}
               <div>
-                <Label className="mb-1 block">Dokumen Petugas Medis</Label>
+                <Label className="mb-1 block">{t.medicalOfficerDoc}</Label>
                 <div className="flex items-center justify-between border rounded-md px-3 py-2">
                   <div className="flex items-center gap-3">
                     <Input

@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,7 +24,36 @@ type SelesaiItem = {
   noPenerbangan: string | null;
   tanggalPerjalanan: string | null;
   suratPenerbitan: string | null;
+  created_at?: string | null;
 };
+
+function formatDate(dateStr?: string | null) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  return new Intl.DateTimeFormat('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(d);
+}
+
+function formatTime(dateStr?: string | null) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function calculateDays(dateStr?: string | null) {
+  if (!dateStr) return 0;
+  const created = new Date(dateStr);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - created.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+}
 
 function isPdf(url: string) {
   return url.toLowerCase().includes('.pdf');
@@ -96,11 +126,16 @@ export default function SelesaiPage() {
                     <div className="font-semibold">
                       {item.namaPasien || '-'}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {item.noPenerbangan || '-'}
-                    </div>
-                    <div className="text-sm text-gray-500">
+                     <div className="text-sm text-gray-500">
                       ID: {item.id}
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2 items-center">
+                      <Badge variant="outline" className="text-[10px]">
+                        Input: {formatDate(item.created_at)} {formatTime(item.created_at)}
+                      </Badge>
+                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[10px] font-bold">
+                        Sudah {calculateDays(item.created_at)} Hari
+                      </Badge>
                     </div>
                   </div>
 

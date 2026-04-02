@@ -22,6 +22,7 @@ import { useAuth } from '../context/auth-context';
 const adminNavItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/dashboard/permohonan', label: 'Permohonan', icon: BookPlus },
+  { path: '/dashboard/revisi', label: 'Revisi', icon: Edit },
   { path: '/dashboard/verifikasi', label: 'Verifikasi', icon: CheckCircle },
   { path: '/dashboard/penerbitan', label: 'Penerbitan', icon: FileCheck },
   { path: '/dashboard/selesai', label: 'Selesai', icon: CheckSquare },

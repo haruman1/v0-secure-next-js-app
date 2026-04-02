@@ -34,6 +34,7 @@ type PublicationItem = {
   surat_izin_terbit?: string | null;
   suratIzin?: string | null;
   surat_izin?: string | null;
+  created_at?: string | null;
 };
 
 type UserPublicationItem = {
@@ -67,6 +68,24 @@ function formatTanggalID(dateString?: string | null): string {
     month: 'long',
     year: 'numeric',
   }).format(date);
+}
+
+function calculateDays(dateStr?: string | null) {
+  if (!dateStr) return 0;
+  const created = new Date(dateStr);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - created.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+}
+
+function formatTime(dateStr?: string | null) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function getPublicationDocument(app: PublicationItem): string | null {
@@ -288,6 +307,14 @@ export default function PenerbitanPage() {
                             {app.namaMaskapai || '-'} •{' '}
                             {formatTanggalID(app.tanggalPerjalanan) || '-'}
                           </p>
+                          <div className="mt-2 flex flex-wrap gap-2 items-center">
+                            <Badge variant="outline" className="text-[10px]">
+                              Input: {formatTanggalID(app.created_at)} {formatTime(app.created_at)}
+                            </Badge>
+                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[10px] font-bold">
+                              Sudah {calculateDays(app.created_at)} Hari
+                            </Badge>
+                          </div>
                         </div>
                         <Badge className="bg-green-600">Disetujui</Badge>
                       </div>
@@ -375,11 +402,16 @@ export default function PenerbitanPage() {
                   <div>
                     <p className="font-medium">Dokumen Surat Izin</p>
                     <p className="text-xs text-gray-500">
-                      {app.namaPasien || '-'}
-                    </p>
-                    <p className="text-xs text-gray-500">
                       {getDocumentName(documentUrl)}
                     </p>
+                    <div className="mt-2 flex flex-wrap gap-2 items-center">
+                      <Badge variant="outline" className="text-[10px]">
+                        Input: {formatTanggalID(app.created_at)} {formatTime(app.created_at)}
+                      </Badge>
+                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[10px] font-bold">
+                        Sudah {calculateDays(app.created_at)} Hari
+                      </Badge>
+                    </div>
                   </div>
 
                   <div className="flex gap-2">
