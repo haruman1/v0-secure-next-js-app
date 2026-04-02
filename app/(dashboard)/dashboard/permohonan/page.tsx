@@ -44,6 +44,8 @@ export default function PermohonanPage() {
   const [previewField, setPreviewField] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [previewMimeType, setPreviewMimeType] = useState<string | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<any>({
     jenisLayanan: '',
@@ -184,8 +186,8 @@ export default function PermohonanPage() {
         : 'Referral Letter / Acceptance letter from destination hospital',
     manifestTicket:
       language === 'id'
-        ? 'Manifest / Tiket Pesawat untuk komersil (digabung ajah) (Nomor pernerbangan dan rute perjalanan)'
-        : 'Manifest / Flight Ticket for commercial (combined) (Flight number and route)',
+        ? 'Manifest / Tiket Pesawat untuk komersil  (Nomor pernerbangan dan rute perjalanan)'
+        : 'Manifest / Flight Ticket for commercial (Flight number and route)',
     medicalOfficerDoc:
       language === 'id'
         ? 'Dokumen Petugas Medis (Sertifikat Pelatihan kegawat daruratan / Keahlian Medivac)'
@@ -230,6 +232,24 @@ export default function PermohonanPage() {
   }
 
   function nextStep() {
+    const errors: string[] = [];
+
+    if (currentStep === 1 && !formData.tanggalPerjalanan) {
+      errors.push('Tanggal perjalanan wajib diisi');
+    }
+    if (currentStep === 1 && !formData.jamPerjalanan) {
+      errors.push('Jam perjalanan wajib diisi');
+    }
+    if (currentStep === 2 && !formData.namaPasien) {
+      errors.push('Nama pasien wajib diisi');
+    }
+
+    if (errors.length > 0) {
+      setErrorMessages(errors);
+      setShowErrorModal(true);
+      return;
+    }
+
     setCurrentStep((prev) => Math.min(prev + 1, 5));
   }
 
@@ -245,6 +265,17 @@ export default function PermohonanPage() {
   }
 
   async function handleSubmit() {
+    const errors: string[] = [];
+    if (!formData.tanggalPerjalanan)
+      errors.push('Tanggal perjalanan wajib diisi');
+    if (!formData.namaPasien) errors.push('Nama pasien wajib diisi');
+
+    if (errors.length > 0) {
+      setErrorMessages(errors);
+      setShowErrorModal(true);
+      return;
+    }
+
     try {
       setLoadingSubmit(true);
       const data = new FormData();
@@ -706,7 +737,8 @@ export default function PermohonanPage() {
                       htmlFor="tanggalPerjalanan"
                       className="text-sm text-gray-700"
                     >
-                      {t.travelDate}
+                      {t.travelDate}{' '}
+                      <span className="text-red-500 font-bold">*</span>
                     </Label>
                     <Input
                       id="tanggalPerjalanan"
@@ -750,7 +782,8 @@ export default function PermohonanPage() {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="namaPasien" className="text-sm text-gray-700">
-                    {t.patientName}
+                    {t.patientName}{' '}
+                    <span className="text-red-500 font-bold">*</span>
                   </Label>
                   <Input
                     id="namaPasien"
@@ -1040,6 +1073,7 @@ export default function PermohonanPage() {
                 <Input
                   id="nomorTeleponPendampingMedis"
                   type="number"
+                  min={1}
                   value={formData.nomorTeleponPendampingMedis}
                   onChange={(e) =>
                     updateField('nomorTeleponPendampingMedis', e.target.value)
@@ -1059,6 +1093,7 @@ export default function PermohonanPage() {
                 <Input
                   id="nomorTeleponKeluarga"
                   type="number"
+                  min={1}
                   value={formData.nomorTeleponKeluarga}
                   onChange={(e) =>
                     updateField('nomorTeleponKeluarga', e.target.value)
@@ -1095,6 +1130,7 @@ export default function PermohonanPage() {
                 <div className="flex items-center justify-between border rounded-md px-3 py-2">
                   <div className="flex items-center gap-3">
                     <Input
+                      required
                       ref={fileInputRef}
                       type="file"
                       accept="image/*,application/pdf"
@@ -1133,6 +1169,7 @@ export default function PermohonanPage() {
                 <div className="flex items-center justify-between border rounded-md px-3 py-2">
                   <div className="flex items-center gap-3">
                     <Input
+                      required
                       ref={fileInputRef}
                       type="file"
                       accept="image/*,application/pdf"
@@ -1282,6 +1319,7 @@ export default function PermohonanPage() {
                   <div className="flex items-center gap-3">
                     <Input
                       ref={fileInputRef}
+                      required
                       type="file"
                       accept="image/*,application/pdf"
                       className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
@@ -1429,6 +1467,40 @@ export default function PermohonanPage() {
               }}
             >
               Tutup
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-red-600 text-xl font-bold">
+              Data Belum Lengkap
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Berikut adalah field yang wajib diisi:
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 mt-4">
+            {errorMessages.map((msg, idx) => (
+              <div
+                key={idx}
+                className="bg-red-50 border border-red-100 p-3 rounded-lg flex items-start gap-2"
+              >
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-1.5 shrink-0" />
+                <span className="text-red-700 text-sm font-medium">{msg}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-center mt-8">
+            <Button
+              className="bg-red-600 hover:bg-red-700 font-bold"
+              onClick={() => setShowErrorModal(false)}
+            >
+              Lengkapi Data
             </Button>
           </div>
         </DialogContent>
