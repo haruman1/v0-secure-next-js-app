@@ -6,17 +6,23 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+
+import { useLanguage } from '@/app/context/language-context';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const { t } = useLanguage();
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -29,9 +35,9 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     if (!token) {
-      setError('Invalid or missing reset token');
+      setError(t('auth.invalidToken'));
     }
-  }, [token]);
+  }, [token, t]);
 
   const validatePassword = (pwd: string) => {
     setValidations({
@@ -53,17 +59,17 @@ function ResetPasswordForm() {
     setSuccess(false);
 
     if (!token) {
-      setError('Invalid reset token');
+      setError(t('auth.invalidToken'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.passwordMismatch'));
       return;
     }
 
     if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('auth.atLeast8Chars'));
       return;
     }
 
@@ -82,7 +88,7 @@ function ResetPasswordForm() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to reset password');
+        throw new Error(errorData.error || t('messages.serverError'));
       }
 
       setSuccess(true);
@@ -94,17 +100,17 @@ function ResetPasswordForm() {
         router.push('/auth/login');
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : t('messages.serverError'));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-md shadow-lg">
+    <Card className="w-full max-w-md shadow-lg border border-sky-100">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Create New Password</CardTitle>
-        <CardDescription>Enter your new password to complete the reset</CardDescription>
+        <CardTitle className="text-2xl">{t('auth.resetPasswordTitle')}</CardTitle>
+        <CardDescription>{t('auth.resetPasswordDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -119,7 +125,7 @@ function ResetPasswordForm() {
             <Alert className="bg-green-50 border-green-200 text-green-800 dark:bg-green-950/20 dark:border-green-800 dark:text-green-100">
               <CheckCircle2 className="h-4 w-4" />
               <AlertDescription>
-                Password reset successfully! Redirecting to login...
+                {t('auth.resetSuccess')}
               </AlertDescription>
             </Alert>
           )}
@@ -127,7 +133,7 @@ function ResetPasswordForm() {
           {/* OTP Input - if needed */}
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              One-Time Password (if required)
+              {t('auth.otpRequired')}
             </label>
             <InputOTP
               maxLength={6}
@@ -145,69 +151,91 @@ function ResetPasswordForm() {
               </InputOTPGroup>
             </InputOTP>
             <p className="text-xs text-muted-foreground">
-              Only fill this if you received a one-time password via email
+              {t('auth.otpRequiredDesc')}
             </p>
           </div>
 
           <div className="space-y-2">
             <label htmlFor="newPassword" className="text-sm font-medium">
-              New Password
+              {t('auth.newPassword')}
             </label>
-            <Input
-              id="newPassword"
-              type="password"
-              placeholder="Create a strong password"
-              value={newPassword}
-              onChange={handlePasswordChange}
-              required
-              disabled={isLoading || success}
-            />
+            <div className="relative">
+              <Input
+                id="newPassword"
+                type={showPassword ? 'text' : 'password'}
+                placeholder={t('auth.newPassword')}
+                value={newPassword}
+                onChange={handlePasswordChange}
+                className="pr-10"
+                required
+                disabled={isLoading || success}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-sky-600 transition-colors"
+                disabled={isLoading || success}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             <div className="space-y-1 text-xs mt-2">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className={`h-3 w-3 ${validations.length ? 'text-green-600' : 'text-muted-foreground'}`} />
-                <span>At least 8 characters</span>
+                <span>{t('auth.atLeast8Chars')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className={`h-3 w-3 ${validations.hasNumber ? 'text-green-600' : 'text-muted-foreground'}`} />
-                <span>Contains a number</span>
+                <span>{t('auth.oneNumber')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className={`h-3 w-3 ${validations.hasUppercase ? 'text-green-600' : 'text-muted-foreground'}`} />
-                <span>Contains uppercase letter</span>
+                <span>{t('auth.oneUppercase')}</span>
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
             <label htmlFor="confirmPassword" className="text-sm font-medium">
-              Confirm Password
+              {t('auth.confirmPassword')}
             </label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder="Confirm your new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              disabled={isLoading || success}
-            />
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder={t('auth.confirmPassword')}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="pr-10"
+                required
+                disabled={isLoading || success}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-sky-600 transition-colors"
+                disabled={isLoading || success}
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-sky-500 hover:bg-sky-600 text-white"
             disabled={isLoading || success}
           >
-            {isLoading ? 'Resetting...' : 'Reset Password'}
+            {isLoading ? t('auth.resetting') : t('auth.resetPasswordButton')}
           </Button>
 
           <div className="flex items-center justify-center">
             <Link
               href="/auth/login"
-              className="text-sm text-primary hover:underline flex items-center gap-1"
+              className="text-sm text-sky-600 hover:underline flex items-center gap-1"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Login
+              {t('auth.backToLogin')}
             </Link>
           </div>
         </form>
@@ -217,12 +245,18 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
+  const { t } = useLanguage();
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-white to-sky-100 p-4">
+      {/* LANGUAGE SWITCHER */}
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
+
       <Suspense fallback={
-        <Card className="w-full max-w-md shadow-lg">
+        <Card className="w-full max-w-md shadow-lg border border-sky-100">
           <CardHeader>
-            <CardTitle>Loading...</CardTitle>
+            <CardTitle>{t('common.loading')}</CardTitle>
           </CardHeader>
         </Card>
       }>
@@ -231,4 +265,5 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+
 

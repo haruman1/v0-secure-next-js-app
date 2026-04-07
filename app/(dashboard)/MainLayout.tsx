@@ -21,10 +21,11 @@ import { useAuth } from '../context/auth-context';
  */
 const adminNavItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/dashboard/permohonan', label: 'Permohonan', icon: BookPlus },
+  { path: '/dashboard/revisi', label: 'Revisi', icon: Edit },
   { path: '/dashboard/verifikasi', label: 'Verifikasi', icon: CheckCircle },
   { path: '/dashboard/penerbitan', label: 'Penerbitan', icon: FileCheck },
   { path: '/dashboard/selesai', label: 'Selesai', icon: CheckSquare },
-
 ];
 
 /**
@@ -33,7 +34,7 @@ const adminNavItems = [
 const userNavItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/dashboard/permohonan', label: 'Permohonan', icon: BookPlus },
-  
+
   { path: '/dashboard/verifikasi', label: 'Verifikasi', icon: CheckCircle },
   { path: '/dashboard/revisi', label: 'Revisi', icon: Edit },
   { path: '/dashboard/penerbitan', label: 'Penerbitan', icon: FileCheck },
@@ -63,7 +64,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <Plane className="size-8 text-blue-600" />
             <div>
-              <h1 className="font-bold text-xl text-gray-900">MEDIVAQ</h1>
+              <h1 className="font-bold text-xl text-gray-900">MEDIVAC</h1>
               <p className="text-xs text-gray-500">
                 Medical Evacuation Services
               </p>

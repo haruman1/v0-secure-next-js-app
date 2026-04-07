@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
-import { useAuth } from './context/auth-context'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { useAuth } from './context/auth-context';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 import {
   Ambulance,
@@ -16,14 +16,14 @@ import {
   ArrowRight,
   Activity,
   type LucideIcon,
-} from 'lucide-react'
+} from 'lucide-react';
 
 // ================= TYPES =================
 type FeatureItem = {
-  icon: LucideIcon
-  title: string
-  desc: string
-}
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+};
 
 // ================= STATIC DATA =================
 const features: FeatureItem[] = [
@@ -42,75 +42,72 @@ const features: FeatureItem[] = [
     title: 'Secure Patient Data',
     desc: 'Enkripsi end-to-end untuk menjamin kerahasiaan data medis dan rekam jejak evakuasi pasien.',
   },
-]
+];
 
 // Diubah menjadi array agar animasi mengetiknya bergantian dan lebih hidup
-const TYPING_TEXTS = [
-  'Medical Evacuation'
-]
+const TYPING_TEXTS = ['Medical Evacuation'];
 
 export default function Home() {
-  const router = useRouter()
-  const auth = useAuth()
+  const router = useRouter();
+  const auth = useAuth();
 
-  const user = auth?.user ?? null
-  const isLoading = auth?.isLoading ?? false
+  const user = auth?.user ?? null;
+  const isLoading = auth?.isLoading ?? false;
 
-  const [display, setDisplay] = useState('')
-  const [textIndex, setTextIndex] = useState(0) // Tambahan state untuk melacak index array
-  const [charIndex, setCharIndex] = useState(0)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [display, setDisplay] = useState('');
+  const [textIndex, setTextIndex] = useState(0); // Tambahan state untuk melacak index array
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // ================= TYPING ANIMATION =================
   useEffect(() => {
-    const currentText = TYPING_TEXTS[textIndex]
-    let timeout: ReturnType<typeof setTimeout>
+    const currentText = TYPING_TEXTS[textIndex];
+    let timeout: ReturnType<typeof setTimeout>;
 
     if (!isDeleting && charIndex < currentText.length) {
       timeout = setTimeout(() => {
-        setDisplay((prev) => prev + currentText[charIndex])
-        setCharIndex((prev) => prev + 1)
-      }, 55)
+        setDisplay((prev) => prev + currentText[charIndex]);
+        setCharIndex((prev) => prev + 1);
+      }, 55);
     } else if (isDeleting && charIndex > 0) {
       timeout = setTimeout(() => {
-        setDisplay((prev) => prev.slice(0, -1))
-        setCharIndex((prev) => prev - 1)
-      }, 30)
+        setDisplay((prev) => prev.slice(0, -1));
+        setCharIndex((prev) => prev - 1);
+      }, 30);
     } else if (!isDeleting && charIndex === currentText.length) {
       timeout = setTimeout(() => {
-        setIsDeleting(true)
-      }, 1800)
+        setIsDeleting(true);
+      }, 1800);
     } else if (isDeleting && charIndex === 0) {
       timeout = setTimeout(() => {
-        setIsDeleting(false)
-        setTextIndex((prev) => (prev + 1) % TYPING_TEXTS.length)
-      }, 250)
+        setIsDeleting(false);
+        setTextIndex((prev) => (prev + 1) % TYPING_TEXTS.length);
+      }, 250);
     }
 
-    return () => clearTimeout(timeout)
-  }, [charIndex, isDeleting, textIndex])
+    return () => clearTimeout(timeout);
+  }, [charIndex, isDeleting, textIndex]);
 
   // ================= REDIRECT LOGIN =================
   useEffect(() => {
     if (!isLoading && user) {
-      router.push('/dashboard')
+      router.push('/dashboard');
     }
-  }, [isLoading, router, user])
+  }, [isLoading, router, user]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
         <Activity className="animate-bounce w-8 h-8 text-[#2D7BFF]" />
         <p className="font-medium animate-pulse text-[#2D7BFF]">
-          Memuat Medivaq...
+          Memuat Medivac...
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen bg-[#F5F7FB] relative overflow-hidden font-sans">
-      
       {/* ================= BACKGROUND GLOWS ================= */}
       <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] blur-[120px] rounded-full pointer-events-none bg-[rgba(45,123,255,0.08)]" />
       <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] blur-[120px] rounded-full pointer-events-none bg-[rgba(94,211,200,0.08)]" />
@@ -118,7 +115,6 @@ export default function Home() {
       {/* ================= NAVBAR ================= */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          
           {/* Logo */}
           <div
             className="flex items-center gap-3 cursor-pointer group"
@@ -126,8 +122,8 @@ export default function Home() {
           >
             <div className="h-10 w-10 rounded-xl overflow-hidden bg-white shadow-sm border border-slate-100 group-hover:scale-105 transition-transform duration-300">
               <Image
-                src="/Medivaq.png"
-                alt="Medivaq Logo"
+                src="/Medivac.png"
+                alt="Medivac Logo"
                 width={40}
                 height={40}
                 className="w-full h-full object-contain p-1"
@@ -136,7 +132,7 @@ export default function Home() {
             </div>
             <div>
               <p className="font-bold text-xl leading-tight text-[#0B1F66]">
-                Medivaq
+                Medivac
               </p>
               <p className="text-[10px] font-medium tracking-wider text-slate-500 uppercase">
                 Medical Evacution
@@ -166,7 +162,6 @@ export default function Home() {
 
       {/* ================= HERO ================= */}
       <section className="relative max-w-7xl mx-auto px-6 pt-40 pb-20 lg:pt-48 lg:pb-32 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center z-10">
-        
         {/* LEFT CONTENT */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -183,7 +178,7 @@ export default function Home() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight text-[#0B1F66]">
-            MEDIVAQ <br className="hidden lg:block" />
+            Medivac <br className="hidden lg:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2D7BFF] via-[#2957D8] to-[#33C7D9]">
               {display}
             </span>
@@ -193,9 +188,9 @@ export default function Home() {
           </h1>
 
           <p className="text-lg md:text-xl mt-8 max-w-2xl leading-relaxed text-[#36507A]">
-            Medivaq menghadirkan solusi digital untuk mendukung layanan
-            evakuasi medis yang lebih responsif, aman, dan terkoordinasi dalam
-            satu platform terintegrasi.
+            Medivac menghadirkan solusi digital untuk mendukung layanan evakuasi
+            medis yang lebih responsif, aman, dan terkoordinasi dalam satu
+            platform terintegrasi.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-12">
@@ -229,8 +224,8 @@ export default function Home() {
 
             <div className="relative mt-10 rounded-2xl aspect-video overflow-hidden bg-white flex items-center justify-center">
               <Image
-                src="/Medivaq.png"
-                alt="Medivaq Dashboard"
+                src="/Medivac.png"
+                alt="Medivac Dashboard"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-contain p-10"
@@ -245,16 +240,17 @@ export default function Home() {
       <section className="relative max-w-7xl mx-auto px-6 py-24 z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold mb-4 text-[#0B1F66]">
-            Fitur Unggulan Medivaq
+            Fitur Unggulan Medivac
           </h2>
           <p className="max-w-2xl mx-auto text-[#36507A]">
-            Dirancang khusus untuk memenuhi standar respon cepat medis dengan keamanan tingkat tinggi.
+            Dirancang khusus untuk memenuhi standar respon cepat medis dengan
+            keamanan tingkat tinggi.
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
           {features.map((feature, i) => {
-            const Icon = feature.icon
+            const Icon = feature.icon;
 
             return (
               <motion.div
@@ -278,7 +274,7 @@ export default function Home() {
                   </p>
                 </Card>
               </motion.div>
-            )
+            );
           })}
         </div>
       </section>
@@ -286,16 +282,16 @@ export default function Home() {
       {/* ================= CTA ================= */}
       <section className="max-w-7xl mx-auto px-6 pb-24 z-10 relative">
         <div className="rounded-[32px] p-10 md:p-16 text-center shadow-[0_25px_60px_rgba(45,123,255,0.18)] overflow-hidden relative bg-gradient-to-br from-[#33C7D9] via-[#2D7BFF] to-[#2957D8]">
-          
           <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-cyan-300/20 rounded-full blur-3xl pointer-events-none" />
 
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 relative z-10">
-            Siap Menggunakan Medivaq?
+            Siap Menggunakan Medivac?
           </h2>
 
           <p className="text-cyan-50 text-lg mb-10 max-w-2xl mx-auto relative z-10">
-            Medivaq hadir untuk membantu anda dalam proses evakuasi medis secara lebih cepat, aman, dan terintegrasi.
+            Medivac hadir untuk membantu anda dalam proses evakuasi medis secara
+            lebih cepat, aman, dan terintegrasi.
           </p>
 
           <div className="relative z-10">
@@ -304,7 +300,7 @@ export default function Home() {
               className="bg-white text-base h-14 px-10 rounded-2xl font-bold shadow-xl transition-all hover:scale-105 hover:bg-slate-50 text-[#2D7BFF]"
               onClick={() => router.push('/auth/register')}
             >
-              Mulai Gunakan Medivaq
+              Mulai Gunakan Medivac
             </Button>
           </div>
         </div>
@@ -315,20 +311,20 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2 font-bold text-[#0B1F66]">
             <Image
-              src="/Medivaq.png"
-              alt="Medivaq Logo"
+              src="/Medivac.png"
+              alt="Medivac Logo"
               width={20}
               height={20}
               className="object-contain"
             />
-            Medivaq
+            Medivac
           </div>
 
           <p className="text-sm text-slate-500">
-            © {new Date().getFullYear()} Medivaq. All rights reserved.
+            © {new Date().getFullYear()} Medivac. All rights reserved.
           </p>
         </div>
       </footer>
     </div>
-  )
+  );
 }

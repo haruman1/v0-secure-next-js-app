@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import Swal from 'sweetalert2';
 
 type PublicationItem = {
   id: string;
@@ -33,8 +34,8 @@ type PublicationItem = {
   surat_izin_terbit?: string | null;
   suratIzin?: string | null;
   surat_izin?: string | null;
+  created_at?: string | null;
 };
-
 
 type UserPublicationItem = {
   app: PublicationItem;
@@ -44,6 +45,7 @@ type UserPublicationItem = {
 function resolveDocumentUrl(value?: string | null): string | null {
   if (!value) return null;
 
+  // kalau sudah full URL atau path root
   if (
     value.startsWith('http://') ||
     value.startsWith('https://') ||
@@ -52,7 +54,8 @@ function resolveDocumentUrl(value?: string | null): string | null {
     return value;
   }
 
-  return null;
+  // 🔥 FIX: handle relative path dari backend
+  return `/${value}`;
 }
 
 function formatTanggalID(dateString?: string | null): string {
@@ -67,6 +70,24 @@ function formatTanggalID(dateString?: string | null): string {
   }).format(date);
 }
 
+function calculateDays(dateStr?: string | null) {
+  if (!dateStr) return 0;
+  const created = new Date(dateStr);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - created.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+}
+
+function formatTime(dateStr?: string | null) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 function getPublicationDocument(app: PublicationItem): string | null {
   return (
     app.dokumenPenerbitan ||
@@ -75,6 +96,10 @@ function getPublicationDocument(app: PublicationItem): string | null {
     app.surat_izin_terbit ||
     app.suratIzin ||
     app.surat_izin ||
+    // 🔥 tambahan kemungkinan field backend
+    (app as any).documentPath ||
+    (app as any).document_path ||
+    (app as any).publication_document ||
     null
   );
 }
@@ -95,9 +120,9 @@ export default function PenerbitanPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>(
-    {},
-  );
+  const [selectedFiles, setSelectedFiles] = useState<
+    Record<string, File | null>
+  >({});
 
   useEffect(() => {
     if (authLoading) return;
@@ -111,23 +136,29 @@ export default function PenerbitanPage() {
       const res = await fetch('/api/evacuations?status=valid', {
         credentials: 'include',
       });
+
       const result = await res.json();
 
       if (res.ok) {
-        setApplications((result.data || []) as PublicationItem[]);
+        const filtered = (result.data || []).filter((app: PublicationItem) => {
+          const doc = getPublicationDocument(app);
+          return !doc;
+        });
+
+        setApplications(filtered);
       }
     } finally {
       setLoading(false);
     }
   }
-async function safeJson(res: Response) {
-  const text = await res.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(`Invalid JSON response: ${text.slice(0, 200)}`);
+  async function safeJson(res: Response) {
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(`Invalid JSON response: ${text.slice(0, 200)}`);
+    }
   }
-}
   async function handleUploadResultDocument(appId: string) {
     const file = selectedFiles[appId];
 
@@ -176,19 +207,26 @@ async function safeJson(res: Response) {
       if (!saveRes.ok) {
         throw new Error(saveResult?.error || 'Simpan dokumen penerbitan gagal');
       }
-
-      alert('Dokumen surat izin berhasil diunggah.');
+      Swal.fire({
+        icon: 'success',
+        title: 'Sukses',
+        text: 'Dokumen penerbitan berhasil disimpan.',
+      });
 
       setSelectedFiles((prev) => ({
         ...prev,
         [appId]: null,
       }));
 
-      await fetchPublicationData();
+      setApplications((prev) => prev.filter((a) => a.id !== appId));
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Terjadi kesalahan upload';
-      alert(message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: message,
+      });
     } finally {
       setUploadingId(null);
       setSavingId(null);
@@ -226,7 +264,9 @@ async function safeJson(res: Response) {
       <Card>
         <CardHeader>
           <CardTitle>
-            {user?.role === 'admin' ? 'Kelola Surat Izin' : 'Dokumen Penerbitan'}
+            {user?.role === 'admin'
+              ? 'Kelola Surat Izin'
+              : 'Dokumen Penerbitan'}
           </CardTitle>
           <CardDescription>
             {user?.role === 'admin'
@@ -253,14 +293,28 @@ async function safeJson(res: Response) {
                   const selectedFile = selectedFiles[app.id] || null;
 
                   return (
-                    <div key={app.id} className="rounded-lg border p-4 space-y-3">
+                    <div
+                      key={app.id}
+                      className="rounded-lg border p-4 space-y-3"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h3 className="font-semibold">{app.namaPasien || '-'}</h3>
+                          <h3 className="font-semibold">
+                            {app.namaPasien || '-'}
+                          </h3>
                           <p className="text-xs text-gray-500">ID: {app.id}</p>
                           <p className="text-sm text-gray-600">
-                            {app.namaMaskapai || '-'} • {formatTanggalID(app.tanggalPerjalanan) || '-'}
+                            {app.namaMaskapai || '-'} •{' '}
+                            {formatTanggalID(app.tanggalPerjalanan) || '-'}
                           </p>
+                          <div className="mt-2 flex flex-wrap gap-2 items-center">
+                            <Badge variant="outline" className="text-[10px]">
+                              Input: {formatTanggalID(app.created_at)} {formatTime(app.created_at)}
+                            </Badge>
+                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[10px] font-bold">
+                              Sudah {calculateDays(app.created_at)} Hari
+                            </Badge>
+                          </div>
                         </div>
                         <Badge className="bg-green-600">Disetujui</Badge>
                       </div>
@@ -347,10 +401,17 @@ async function safeJson(res: Response) {
                 >
                   <div>
                     <p className="font-medium">Dokumen Surat Izin</p>
-                    <p className="text-xs text-gray-500">{app.namaPasien || '-'}</p>
                     <p className="text-xs text-gray-500">
                       {getDocumentName(documentUrl)}
                     </p>
+                    <div className="mt-2 flex flex-wrap gap-2 items-center">
+                      <Badge variant="outline" className="text-[10px]">
+                        Input: {formatTanggalID(app.created_at)} {formatTime(app.created_at)}
+                      </Badge>
+                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[10px] font-bold">
+                        Sudah {calculateDays(app.created_at)} Hari
+                      </Badge>
+                    </div>
                   </div>
 
                   <div className="flex gap-2">

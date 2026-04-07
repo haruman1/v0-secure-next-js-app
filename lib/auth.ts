@@ -48,7 +48,7 @@ export async function sendPasswordResetEmail(
     await emailTransporter.sendMail({
       from: process.env.EMAIL_FROM || 'noreply@medical-evacuation.com',
       to: email,
-      subject: 'Reset Your Password',
+      subject: 'Reset Your Password - MEDIVAC BBKK Soekarno Hatta',
       html: `
         <h2>Password Reset Request</h2>
         <p>Click the link below to reset your password. This link will expire in 1 hour.</p>
@@ -60,7 +60,7 @@ export async function sendPasswordResetEmail(
     await emailTransporter.sendMail({
       from: process.env.EMAIL_FROM || 'noreply@medical-evacuation.com',
       to: email,
-      subject: 'Your Password Reset Code',
+      subject: 'Your Password Reset Code - MEDIVAC BBKK Soekarno Hatta',
       html: `
         <h2>Password Reset Code</h2>
         <p>Your password reset code is: <strong>${otp}</strong></p>

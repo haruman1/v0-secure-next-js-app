@@ -18,7 +18,7 @@ import {
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-import { Ambulance, AlertCircle } from 'lucide-react';
+import { Ambulance, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 import { useAuth } from '@/app/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +31,7 @@ export default function LoginPage() {
 
   const [email,setEmail] = useState('');
   const [password,setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error,setError] = useState('');
   const [isLoading,setIsLoading] = useState(false);
 
@@ -159,15 +160,25 @@ export default function LoginPage() {
 
               </div>
 
-              <Input
-                type="password"
-                placeholder={t('auth.password')}
-                value={password}
-                onChange={(e)=>setPassword(e.target.value)}
-                className="h-11"
-                required
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={t('auth.password')}
+                  value={password}
+                  onChange={(e)=>setPassword(e.target.value)}
+                  className="h-11 pr-10"
+                  required
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-sky-600 transition-colors"
+                  disabled={isLoading}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
 
             </div>
 
