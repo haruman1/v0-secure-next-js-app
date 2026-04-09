@@ -311,7 +311,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2 font-bold text-[#0B1F66]">
             <Image
-              src="/Medivaq.png"
+              src="/icon.png"
               alt="Medivac Logo"
               width={20}
               height={20}
