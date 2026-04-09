@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/auth-context';
+import { useLanguage } from '@/app/context/language-context'; 
 import Swal from 'sweetalert2';
 import {
   Card,
@@ -20,12 +21,123 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 
 import Image from 'next/image';
+
+/* ================= TRANSLATIONS ================= */
+const translations = {
+  id: {
+    title: 'Verifikasi Permohonan',
+    appData: 'Data Permohonan',
+    dataCount: 'data',
+    loading: 'Loading...',
+    noData: 'Tidak ada data',
+    waiting: 'Menunggu',
+    revision: 'Revisi',
+    valid: 'Valid',
+    canceled: 'Batal',
+    detail: 'Detail',
+    approve: 'Setujui',
+    detailTitle: 'Detail Permohonan',
+    fullInfo: 'Informasi lengkap',
+    flightData: 'Data Penerbangan & Pemohon',
+    patientName: 'Nama Pasien',
+    serviceType: 'Jenis Layanan',
+    planeType: 'Jenis Pesawat',
+    flightNo: 'No Penerbangan',
+    airline: 'Maskapai',
+    groundhandling: 'Groundhandling',
+    medicalCondition: 'Kondisi Medis',
+    bloodPressure: 'Tekanan Darah',
+    pulse: 'Nadi',
+    oxygenSaturation: 'Saturasi Oksigen',
+    consciousness: 'Tingkat Kesadaran',
+    uploadDocs: 'Dokumen Upload',
+    sip: 'Surat Izin Praktik',
+    referral: 'Surat Rujukan',
+    manifest: 'Manifest/Tiket',
+    conditionPhoto: 'Foto Kondisi',
+    ktp: 'KTP Pasien',
+    medDocs: 'Dokumen Medis',
+    created: 'Dibuat',
+    updated: 'Update',
+    lastRevNote: 'Catatan Revisi Terakhir:',
+    defaultRevMsg: 'Gunakan catatan di bawah untuk memperbaiki data:',
+    genRevNote: 'Catatan Umum Revisi',
+    approveAll: 'Setujui Seluruhnya',
+    sendRev: 'Kirim Ke Revisi',
+    sending: 'Mengirim...',
+    revPlaceholder: 'Contoh: Seluruh dokumen kurang jelas, mohon upload ulang...',
+    success: 'Berhasil',
+    error: 'Error',
+    info: 'Info',
+    appApproved: 'Permohonan disetujui',
+    fetchFailed: 'Gagal mengambil data',
+    detailFailed: 'Gagal mengambil detail',
+    approveFailed: 'Gagal approve',
+    needRevReason: 'Berikan setidaknya satu alasan revisi',
+    returnedForRev: 'Dikembalikan untuk revisi',
+    submitRevFailed: 'Gagal submit revisi',
+    revReason: 'Alasan revisi...',
+  },
+  en: {
+    title: 'Application Verification',
+    appData: 'Application Data',
+    dataCount: 'records',
+    loading: 'Loading...',
+    noData: 'No data available',
+    waiting: 'Pending',
+    revision: 'Revision',
+    valid: 'Valid',
+    canceled: 'Canceled',
+    detail: 'Detail',
+    approve: 'Approve',
+    detailTitle: 'Application Detail',
+    fullInfo: 'Complete information',
+    flightData: 'Flight & Applicant Data',
+    patientName: 'Patient Name',
+    serviceType: 'Service Type',
+    planeType: 'Aircraft Type',
+    flightNo: 'Flight Number',
+    airline: 'Airline',
+    groundhandling: 'Groundhandling',
+    medicalCondition: 'Medical Condition',
+    bloodPressure: 'Blood Pressure',
+    pulse: 'Pulse',
+    oxygenSaturation: 'Oxygen Saturation',
+    consciousness: 'Level of Consciousness',
+    uploadDocs: 'Uploaded Documents',
+    sip: 'Practice License',
+    referral: 'Referral Letter',
+    manifest: 'Manifest/Ticket',
+    conditionPhoto: 'Condition Photo',
+    ktp: 'Patient ID Card',
+    medDocs: 'Medical Documents',
+    created: 'Created',
+    updated: 'Updated',
+    lastRevNote: 'Last Revision Notes:',
+    defaultRevMsg: 'Use the notes below to correct the data:',
+    genRevNote: 'General Revision Note',
+    approveAll: 'Approve All',
+    sendRev: 'Send for Revision',
+    sending: 'Sending...',
+    revPlaceholder: 'Example: All documents are unclear, please re-upload...',
+    success: 'Success',
+    error: 'Error',
+    info: 'Info',
+    appApproved: 'Application approved',
+    fetchFailed: 'Failed to fetch data',
+    detailFailed: 'Failed to fetch details',
+    approveFailed: 'Failed to approve',
+    needRevReason: 'Provide at least one revision reason',
+    returnedForRev: 'Returned for revision',
+    submitRevFailed: 'Failed to submit revision',
+    revReason: 'Revision reason...',
+  },
+};
 
 /* ================= TYPES ================= */
 
@@ -176,6 +288,10 @@ function formatDateTime(date?: string) {
 export default function VerifikasiPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
+  
+  // setLanguage dihapus agar tidak menjadi unused variable
+  const { language } = useLanguage(); 
+  const t = translations[language as keyof typeof translations] || translations.id;
 
   const [applications, setApplications] = useState<AppItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -185,8 +301,6 @@ export default function VerifikasiPage() {
 
   const [revisiNote, setRevisiNote] = useState('');
   const [submittingRevisi, setSubmittingRevisi] = useState(false);
-
-  // Field-level revision notes
   const [fieldNotes, setFieldNotes] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -208,7 +322,7 @@ export default function VerifikasiPage() {
       const result = await res.json();
       setApplications((result.data || []).map(mapApplication));
     } catch {
-      Swal.fire('Error', 'Gagal mengambil data', 'error');
+      Swal.fire(t.error, t.fetchFailed, 'error');
     } finally {
       setLoading(false);
     }
@@ -226,16 +340,14 @@ export default function VerifikasiPage() {
       const app = mapApplication(result.data);
       setSelectedApp(app);
 
-      // Extract existing field-level revision notes
       const existingNotes = parseCatatanRevisi(app.catatanRevisi);
-      // Remove the general note so it doesn't appear in specific fields
       const { _general, ...onlyFields } = existingNotes;
       setFieldNotes(onlyFields);
       setRevisiNote(_general || '');
 
       setShowDetail(true);
     } catch {
-      Swal.fire('Error', 'Gagal mengambil detail', 'error');
+      Swal.fire(t.error, t.detailFailed, 'error');
     }
   }
 
@@ -251,14 +363,14 @@ export default function VerifikasiPage() {
 
       if (!res.ok) throw new Error();
 
-      Swal.fire('Berhasil', 'Permohonan disetujui', 'success');
+      Swal.fire(t.success, t.appApproved, 'success');
 
       setApplications((prev) => prev.filter((a) => a.id !== id));
       setShowDetail(false);
 
       if (redirect) router.push('/dashboard/penerbitan');
     } catch {
-      Swal.fire('Error', 'Gagal approve', 'error');
+      Swal.fire(t.error, t.approveFailed, 'error');
     } finally {
       setLoadingAction(false);
     }
@@ -267,10 +379,9 @@ export default function VerifikasiPage() {
   async function submitRevisi() {
     if (!selectedApp) return;
 
-    // Ada alasan umum atau setidaknya satu alasan spesifik
     const hasAnyFieldNote = Object.values(fieldNotes).some((v) => v.trim() !== '');
     if (!revisiNote.trim() && !hasAnyFieldNote) {
-      Swal.fire('Info', 'Berikan setidaknya satu alasan revisi', 'info');
+      Swal.fire(t.info, t.needRevReason, 'info');
       return;
     }
 
@@ -292,26 +403,27 @@ export default function VerifikasiPage() {
 
       if (!res.ok) throw new Error();
 
-      Swal.fire('Berhasil', 'Dikembalikan untuk revisi', 'success');
+      Swal.fire(t.success, t.returnedForRev, 'success');
 
       setApplications((prev) => prev.filter((a) => a.id !== selectedApp.id));
       setShowDetail(false);
       setRevisiNote('');
       setFieldNotes({});
     } catch {
-      Swal.fire('Error', 'Gagal submit revisi', 'error');
+      Swal.fire(t.error, t.submitRevFailed, 'error');
     } finally {
       setSubmittingRevisi(false);
     }
   }
 
   function getStatusBadge(status: AppItem['status']) {
-    if (status === 'pending') return <Badge>Menunggu</Badge>;
+    if (status === 'pending') 
+      return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white border-transparent">{t.waiting}</Badge>;
     if (status === 'reviewed')
-      return <Badge variant="destructive">Revisi</Badge>;
+      return <Badge className="bg-red-600 hover:bg-red-700 text-white border-transparent">{t.revision}</Badge>;
     if (status === 'valid')
-      return <Badge className="bg-green-600">Valid</Badge>;
-    return <Badge variant="outline">Batal</Badge>;
+      return <Badge className="bg-green-600 hover:bg-green-700 text-white border-transparent">{t.valid}</Badge>;
+    return <Badge className="bg-gray-500 hover:bg-gray-600 text-white border-transparent">{t.canceled}</Badge>;
   }
 
   if (authLoading) return null;
@@ -320,19 +432,21 @@ export default function VerifikasiPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Verifikasi Permohonan</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">{t.title}</h1>
+      </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Data Permohonan</CardTitle>
-          <CardDescription>{applications.length} data</CardDescription>
+          <CardTitle>{t.appData}</CardTitle>
+          <CardDescription>{applications.length} {t.dataCount}</CardDescription>
         </CardHeader>
 
         <CardContent>
           {loading ? (
-            <div>Loading...</div>
+            <div>{t.loading}</div>
           ) : applications.length === 0 ? (
-            <div>Tidak ada data</div>
+            <div>{t.noData}</div>
           ) : (
             applications.map((app) => (
               <div
@@ -348,15 +462,27 @@ export default function VerifikasiPage() {
 
                 <div className="flex gap-2 items-center">
                   {getStatusBadge(app.status)}
-                  <Button onClick={() => openDetail(app.id)}>Detail</Button>
+                  
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700 text-white" 
+                    onClick={() => openDetail(app.id)}
+                  >
+                    {t.detail}
+                  </Button>
 
                   {user?.role === 'admin' && (
                     <>
-                      <Button onClick={() => handleApprove(app.id)}>
-                        Setujui
+                      <Button 
+                        className="bg-green-600 hover:bg-green-700 text-white" 
+                        onClick={() => handleApprove(app.id)}
+                      >
+                        {t.approve}
                       </Button>
-                      <Button variant="outline" onClick={() => openDetail(app.id)}>
-                        Revisi
+                      <Button 
+                        className="bg-red-600 hover:bg-red-700 text-white" 
+                        onClick={() => openDetail(app.id)}
+                      >
+                        {t.revision}
                       </Button>
                     </>
                   )}
@@ -367,211 +493,163 @@ export default function VerifikasiPage() {
         </CardContent>
       </Card>
 
-      {/* DETAIL MODAL FULL */}
       <Dialog open={showDetail} onOpenChange={setShowDetail}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Detail Permohonan</DialogTitle>
-            <DialogDescription>Informasi lengkap</DialogDescription>
+            <DialogTitle>{t.detailTitle}</DialogTitle>
+            <DialogDescription>{t.fullInfo}</DialogDescription>
           </DialogHeader>
 
           {selectedApp && (
             <div className="space-y-6 pt-4 max-h-[70vh] overflow-y-auto pr-2 text-sm">
               <section>
                 <h3 className="font-bold border-b pb-1 mb-2 text-blue-700">
-                  Data Penerbangan & Pemohon
+                  {t.flightData}
                 </h3>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                   <DetailField
-                    label="Nama Pasien"
+                    label={t.patientName}
                     value={selectedApp.namaPasien}
-                    fieldName="namaPasien"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, namaPasien: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, namaPasien: val }))}
                     currentNote={fieldNotes.namaPasien}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DetailField
-                    label="Jenis Layanan"
+                    label={t.serviceType}
                     value={selectedApp.jenisLayanan}
-                    fieldName="jenisLayanan"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, jenisLayanan: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, jenisLayanan: val }))}
                     currentNote={fieldNotes.jenisLayanan}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DetailField
-                    label="Jenis Pesawat"
+                    label={t.planeType}
                     value={selectedApp.jenisPesawat}
-                    fieldName="jenisPesawat"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, jenisPesawat: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, jenisPesawat: val }))}
                     currentNote={fieldNotes.jenisPesawat}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DetailField
-                    label="No Penerbangan"
+                    label={t.flightNo}
                     value={selectedApp.noPenerbangan}
-                    fieldName="noPenerbangan"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, noPenerbangan: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, noPenerbangan: val }))}
                     currentNote={fieldNotes.noPenerbangan}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DetailField
-                    label="Maskapai"
+                    label={t.airline}
                     value={selectedApp.namaMaskapai}
-                    fieldName="namaMaskapai"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, namaMaskapai: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, namaMaskapai: val }))}
                     currentNote={fieldNotes.namaMaskapai}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DetailField
-                    label="Groundhandling"
+                    label={t.groundhandling}
                     value={selectedApp.namaGroundhandling}
-                    fieldName="namaGroundhandling"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({
-                        ...prev,
-                        namaGroundhandling: val,
-                      }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, namaGroundhandling: val }))}
                     currentNote={fieldNotes.namaGroundhandling}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                 </div>
               </section>
 
               <section>
                 <h3 className="font-bold border-b pb-1 mb-2 text-blue-700">
-                  Kondisi Medis
+                  {t.medicalCondition}
                 </h3>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                   <DetailField
-                    label="Tekanan Darah"
+                    label={t.bloodPressure}
                     value={selectedApp.tekananDarah}
-                    fieldName="tekananDarah"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, tekananDarah: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, tekananDarah: val }))}
                     currentNote={fieldNotes.tekananDarah}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DetailField
-                    label="Nadi"
+                    label={t.pulse}
                     value={selectedApp.nadi}
-                    fieldName="nadi"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, nadi: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, nadi: val }))}
                     currentNote={fieldNotes.nadi}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DetailField
-                    label="Saturasi Oksigen"
+                    label={t.oxygenSaturation}
                     value={selectedApp.saturasiOksigen}
-                    fieldName="saturasiOksigen"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, saturasiOksigen: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, saturasiOksigen: val }))}
                     currentNote={fieldNotes.saturasiOksigen}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DetailField
-                    label="Tingkat Kesadaran"
+                    label={t.consciousness}
                     value={selectedApp.tingkatKesadaran}
-                    fieldName="tingkatKesadaran"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({
-                        ...prev,
-                        tingkatKesadaran: val,
-                      }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, tingkatKesadaran: val }))}
                     currentNote={fieldNotes.tingkatKesadaran}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                 </div>
               </section>
 
               <section>
                 <h3 className="font-bold border-b pb-1 mb-2 text-blue-700">
-                  Dokumen Upload
+                  {t.uploadDocs}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <DocField
-                    label="Surat Izin Praktik"
+                    label={t.sip}
                     src={selectedApp.noSuratPraktik}
-                    fieldName="noSuratPraktik"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, noSuratPraktik: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, noSuratPraktik: val }))}
                     currentNote={fieldNotes.noSuratPraktik}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DocField
-                    label="Surat Rujukan"
+                    label={t.referral}
                     src={selectedApp.suratRujukan}
-                    fieldName="suratRujukan"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, suratRujukan: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, suratRujukan: val }))}
                     currentNote={fieldNotes.suratRujukan}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DocField
-                    label="Manifest/Tiket"
+                    label={t.manifest}
                     src={selectedApp.manifetPrivateJet}
-                    fieldName="manifetPrivateJet"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({
-                        ...prev,
-                        manifetPrivateJet: val,
-                      }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, manifetPrivateJet: val }))}
                     currentNote={fieldNotes.manifetPrivateJet}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DocField
-                    label="Foto Kondisi"
+                    label={t.conditionPhoto}
                     src={selectedApp.fotoKondisiPasien}
-                    fieldName="fotoKondisiPasien"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({
-                        ...prev,
-                        fotoKondisiPasien: val,
-                      }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, fotoKondisiPasien: val }))}
                     currentNote={fieldNotes.fotoKondisiPasien}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DocField
-                    label="KTP Pasien"
+                    label={t.ktp}
                     src={selectedApp.ktpPasien}
-                    fieldName="ktpPasien"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({ ...prev, ktpPasien: val }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, ktpPasien: val }))}
                     currentNote={fieldNotes.ktpPasien}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                   <DocField
-                    label="Dokumen Medis"
+                    label={t.medDocs}
                     src={selectedApp.dokumentPetugasMedis}
-                    fieldName="dokumentPetugasMedis"
-                    onNoteChange={(val) =>
-                      setFieldNotes((prev) => ({
-                        ...prev,
-                        dokumentPetugasMedis: val,
-                      }))
-                    }
+                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, dokumentPetugasMedis: val }))}
                     currentNote={fieldNotes.dokumentPetugasMedis}
                     isAdmin={isAdmin}
+                    placeholder={t.revReason}
                   />
                 </div>
               </section>
@@ -579,29 +657,28 @@ export default function VerifikasiPage() {
               <div className="pt-4 border-t space-y-4">
                 <div>
                   <p>
-                    <b>Dibuat:</b> {formatDateTime(selectedApp.created_at)}
+                    <b>{t.created}:</b> {formatDateTime(selectedApp.created_at)}
                   </p>
                   <p>
-                    <b>Update:</b> {formatDateTime(selectedApp.updated_at)}
+                    <b>{t.updated}:</b> {formatDateTime(selectedApp.updated_at)}
                   </p>
                 </div>
 
                 {selectedApp.catatanRevisi && (
-                  <div className="p-3 bg-amber-50 rounded border border-amber-200 shadow-sm">
-                    <p className="font-bold text-xs text-amber-700 uppercase mb-2 flex items-center gap-1">
-                      <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                      Catatan Revisi Terakhir:
+                  <div className="p-3 bg-red-50 rounded border border-red-200 shadow-sm">
+                    <p className="font-bold text-xs text-red-700 uppercase mb-2 flex items-center gap-1">
+                      <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+                      {t.lastRevNote}
                     </p>
-                    <div className="space-y-2 text-amber-900">
+                    <div className="space-y-2 text-red-900">
                       <p className="font-semibold underline">
-                        {getGeneralNote(selectedApp.catatanRevisi) ||
-                          'Gunakan catatan di bawah untuk memperbaiki data:'}
+                        {getGeneralNote(selectedApp.catatanRevisi) || t.defaultRevMsg}
                       </p>
                       {Object.keys(parseCatatanRevisi(selectedApp.catatanRevisi))
                         .filter((k) => k !== '_general' && parseCatatanRevisi(selectedApp.catatanRevisi)[k])
                         .map((key) => (
                           <div key={key} className="flex gap-1.5 items-start text-xs">
-                            <span className="bg-amber-200 px-1 rounded font-bold uppercase shrink-0">
+                            <span className="bg-red-200 px-1 rounded font-bold uppercase shrink-0">
                               {key}:
                             </span>
                             <span>{parseCatatanRevisi(selectedApp.catatanRevisi)[key]}</span>
@@ -614,24 +691,28 @@ export default function VerifikasiPage() {
                 {user?.role === 'admin' && (
                   <div className="space-y-3 bg-red-50 p-4 rounded-lg border border-red-100">
                     <Label className="font-bold text-red-700">
-                      Catatan Umum Revisi
+                      {t.genRevNote}
                     </Label>
                     <textarea
                       className="w-full border p-2 rounded h-24 text-sm bg-white"
-                      placeholder="Contoh: Seluruh dokumen kurang jelas, mohon upload ulang..."
+                      placeholder={t.revPlaceholder}
                       value={revisiNote}
                       onChange={(e) => setRevisiNote(e.target.value)}
                     />
+                    
                     <div className="flex justify-end gap-2">
-                      <Button onClick={() => handleApprove(selectedApp.id)}>
-                        Setujui Seluruhnya
+                      <Button 
+                        className="bg-green-600 hover:bg-green-700 text-white" 
+                        onClick={() => handleApprove(selectedApp.id)}
+                      >
+                        {t.approveAll}
                       </Button>
                       <Button
-                        variant="destructive"
+                        className="bg-red-600 hover:bg-red-700 text-white"
                         disabled={submittingRevisi}
                         onClick={submitRevisi}
                       >
-                        {submittingRevisi ? 'Mengirim...' : 'Kirim Ke Revisi'}
+                        {submittingRevisi ? t.sending : t.sendRev}
                       </Button>
                     </div>
                   </div>
@@ -648,17 +729,17 @@ export default function VerifikasiPage() {
 function DetailField({
   label,
   value,
-  fieldName,
   onNoteChange,
   currentNote,
   isAdmin = false,
+  placeholder = "Alasan revisi..."
 }: {
   label: string;
   value: string | null;
-  fieldName: string;
   onNoteChange: (val: string) => void;
   currentNote?: string;
   isAdmin?: boolean;
+  placeholder?: string;
 }) {
   const [showInput, setShowInput] = useState(false);
 
@@ -686,7 +767,7 @@ function DetailField({
         isAdmin ? (
           <input
             className="mt-2 w-full text-xs border border-red-200 p-1 rounded bg-white text-red-600 placeholder:text-red-300"
-            placeholder="Alasan revisi..."
+            placeholder={placeholder}
             value={currentNote || ''}
             onChange={(e) => onNoteChange(e.target.value)}
             autoFocus={showInput}
@@ -704,17 +785,17 @@ function DetailField({
 function DocField({
   label,
   src,
-  fieldName,
   onNoteChange,
   currentNote,
   isAdmin = false,
+  placeholder = "Alasan revisi..."
 }: {
   label: string;
   src: string | null | undefined;
-  fieldName: string;
   onNoteChange: (val: string) => void;
   currentNote?: string;
   isAdmin?: boolean;
+  placeholder?: string;
 }) {
   const [showInput, setShowInput] = useState(false);
 
@@ -746,7 +827,7 @@ function DocField({
         isAdmin ? (
           <input
             className="mt-2 w-full text-xs border border-red-200 p-1 rounded bg-white text-red-600"
-            placeholder="Alasan revisi..."
+            placeholder={placeholder}
             value={currentNote || ''}
             onChange={(e) => onNoteChange(e.target.value)}
             autoFocus={showInput}
