@@ -15,14 +15,6 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import {
@@ -41,7 +33,6 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
-
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -50,7 +41,6 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
     phone: '',
-    role: 'user' as 'admin' | 'user',
   });
 
   const [error, setError] = useState('');
@@ -105,7 +95,7 @@ export default function RegisterPage() {
         formData.password,
         formData.fullName,
         formData.phone,
-        formData.role,
+        'user' // Role di-hardcode langsung menjadi 'user'
       );
 
       router.push('/dashboard');
@@ -143,10 +133,8 @@ export default function RegisterPage() {
             )}
 
             {/* NAMA */}
-
             <div className="space-y-2">
               <label className="text-sm font-medium">Nama lengkap</label>
-
               <Input
                 name="fullName"
                 placeholder="Nama lengkap"
@@ -157,36 +145,9 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* ROLE */}
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Role</label>
-
-              <Select
-                value={formData.role}
-                onValueChange={(value: 'admin' | 'user') =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    role: value,
-                  }))
-                }
-              >
-                <SelectTrigger className="w-full h-11">
-                  <SelectValue placeholder="Pilih role" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* EMAIL */}
-
             <div className="space-y-2">
               <label className="text-sm font-medium">Email</label>
-
               <Input
                 name="email"
                 type="email"
@@ -199,10 +160,8 @@ export default function RegisterPage() {
             </div>
 
             {/* TELEPON */}
-
             <div className="space-y-2">
               <label className="text-sm font-medium">Nomor telepon</label>
-
               <Input
                 name="phone"
                 type="tel"
@@ -214,7 +173,6 @@ export default function RegisterPage() {
             </div>
 
             {/* PASSWORD */}
-
             <div className="space-y-2">
               <label className="text-sm font-medium">Password</label>
               <div className="relative">
@@ -278,7 +236,6 @@ export default function RegisterPage() {
             </div>
 
             {/* CONFIRM PASSWORD */}
-
             <div className="space-y-2">
               <label className="text-sm font-medium">Konfirmasi password</label>
               <div className="relative">
@@ -306,7 +263,6 @@ export default function RegisterPage() {
             </div>
 
             {/* BUTTON */}
-
             <Button
               type="submit"
               className="w-full h-11 bg-sky-500 hover:bg-sky-600 text-white"
@@ -316,7 +272,6 @@ export default function RegisterPage() {
             </Button>
 
             {/* LOGIN */}
-
             <p className="text-center text-sm text-muted-foreground">
               Sudah punya akun?{' '}
               <Link

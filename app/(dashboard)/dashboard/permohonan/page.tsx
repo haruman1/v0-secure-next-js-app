@@ -1,7 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { Check, Globe } from 'lucide-react';
+import { useState, useRef } from 'react';
+import {
+  Check,
+  Eye,
+  UploadCloud,
+  FileText,
+  AlertCircle,
+  ArrowRight,
+  ArrowLeft,
+  Save
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,11 +24,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+import { useLanguage } from '@/app/context/language-context';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useApplications } from '@/app/context/ApplicationContext';
-import { useRef } from 'react';
-import { Eye } from 'lucide-react';
 
 import {
   Dialog,
@@ -31,19 +39,22 @@ import {
 
 export default function PermohonanPage() {
   const router = useRouter();
-  const { user, isLoading: authLoading } = useAuth();
+  const { isLoading: authLoading } = useAuth();
   const { addApplication } = useApplications();
+
+  const { language, setLanguage } = useLanguage();
+
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [language, setLanguage] = useState<'id' | 'en'>('id');
   const [currentStep, setCurrentStep] = useState(1);
-  const [previewFiles, setPreviewFiles] = useState<any>({});
+
   const [previewModal, setPreviewModal] = useState(false);
   const [previewFileUrl, setPreviewFileUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewField, setPreviewField] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [previewMimeType, setPreviewMimeType] = useState<string | null>(null);
+
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
@@ -59,21 +70,27 @@ export default function PermohonanPage() {
     noKursi: '',
     tanggalPerjalanan: '',
     jamPerjalanan: '',
+
     namaPasien: '',
     jenisKelamin: '',
     tanggalLahir: '',
+
     memerlukanOksigen: '',
     posisiPasien: '',
     tingkatKesadaran: '',
     tekananDarah: '',
     nadi: '',
     frekuensiNafas: '',
+    saturasiOksigen: '',
+
     jumlahPendamping: '',
     namaPendamping: '',
     hubunganPendamping: '',
     nomorTeleponPendampingMedis: '',
     nomorTeleponKeluarga: '',
     nosuratIzin: '',
+
+    noSuratPraktik: null,
     fotoKondisiPasien: null,
     ktpPasien: null,
     manifetPrivateJet: null,
@@ -85,140 +102,119 @@ export default function PermohonanPage() {
 
   const t: any = {
     title: language === 'id' ? 'Form Permohonan' : 'Request Form',
-    subtitle:
-      language === 'id' ? 'Evakuasi Medis Udara' : 'Air Medical Evacuation',
+    subtitle: language === 'id' ? 'Evakuasi Medis Udara' : 'Air Medical Evacuation',
+
     flightData: language === 'id' ? 'Data Penerbangan' : 'Flight Data',
     patientData: language === 'id' ? 'Data Pasien' : 'Patient Data',
-    patientCondition:
-      language === 'id' ? 'Kondisi Pasien' : 'Patient Condition',
+    patientCondition: language === 'id' ? 'Kondisi Pasien' : 'Patient Condition',
     companionData: language === 'id' ? 'Data Pendamping' : 'Companion Data',
     uploadDocuments: language === 'id' ? 'Upload Dokumen' : 'Upload Documents',
 
-    /* Data Penerbangan */
     serviceType: language === 'id' ? 'Jenis Layanan' : 'Service Type',
     aircraftType: language === 'id' ? 'Jenis Pesawat' : 'Aircraft Type',
     saveDraft: language === 'id' ? 'Simpan Draft' : 'Save Draft',
-    previous: language === 'id' ? 'Sebelumnya' : 'Previous',
-    next: language === 'id' ? 'Selanjutnya' : 'Next',
-    submit: language === 'id' ? 'Submit' : 'Submit',
-    serviceTypePlaceholder:
-      language === 'id' ? 'Pilih jenis layanan' : 'Select service type',
+    previous: language === 'id' ? 'Kembali' : 'Previous',
+    next: language === 'id' ? 'Lanjut' : 'Next',
+    submit: language === 'id' ? 'Kirim Permohonan' : 'Submit Request',
+    loading: language === 'id' ? 'Memproses...' : 'Processing...',
+    serviceTypePlaceholder: language === 'id' ? 'Pilih jenis layanan' : 'Select service type',
     departure: language === 'id' ? 'Keberangkatan' : 'Departure',
     arrival: language === 'id' ? 'Kedatangan' : 'Arrival',
-    aircraftTypePlaceholder:
-      language === 'id' ? 'Pilih jenis pesawat' : 'Select aircraft type',
+    aircraftTypePlaceholder: language === 'id' ? 'Pilih jenis pesawat' : 'Select aircraft type',
     commercial: language === 'id' ? 'Komersial' : 'Commercial',
     privateJet: language === 'id' ? 'Pribadi' : 'Private Jet',
-    groundhandlingName:
-      language === 'id' ? 'Nama Groundhandling' : 'Groundhandling Name',
+
+    groundhandlingName: language === 'id' ? 'Nama Groundhandling' : 'Groundhandling Name',
     officerName: language === 'id' ? 'Nama Petugas' : 'Officer Name',
     officePhone: language === 'id' ? 'No Telepon Kantor' : 'Office Phone',
     companyEmail: language === 'id' ? 'Email Perusahaan' : 'Company Email',
     airlineName: language === 'id' ? 'Nama Maskapai' : 'Airline Name',
-    airlineExample:
-      language === 'id'
-        ? 'Contoh: Garuda Indonesia - PK-GII'
-        : 'Example: Garuda Indonesia - PK-GII',
+    airlineExample: language === 'id' ? 'Contoh: Garuda Indonesia' : 'Example: Garuda Indonesia',
     flightNumber: language === 'id' ? 'No Penerbangan' : 'Flight Number',
-    flightExample:
-      language === 'id'
-        ? 'Contoh: GA 330 CGK to KNO'
-        : 'Example: GA 330 CGK to KNO',
+    flightExample: language === 'id' ? 'Contoh: GA 330' : 'Example: GA 330',
     seatNumber: language === 'id' ? 'No Kursi' : 'Seat Number',
-    seatNote:
-      language === 'id'
-        ? 'Opsional, jika ingin menyertakan nomor kursi pasien'
-        : "Optional, if you want to include patient's seat number",
-    travelDate: language === 'id' ? 'TanggalPerjalanan' : 'Travel Date',
+    seatNote: language === 'id' ? 'Opsional' : 'Optional',
+    travelDate: language === 'id' ? 'Tanggal Perjalanan' : 'Travel Date',
     travelTime: language === 'id' ? 'Jam Perjalanan' : 'Travel Time',
 
-    /* Data Pasien */
     patientName: language === 'id' ? 'Nama Pasien' : 'Patient Name',
     gender: language === 'id' ? 'Jenis Kelamin' : 'Gender',
     tanggalLahir: language === 'id' ? 'Tanggal Lahir' : 'Date of Birth',
+    male: language === 'id' ? 'Laki-laki' : 'Male',
+    female: language === 'id' ? 'Perempuan' : 'Female',
 
-    /* Kondisi Pasien */
-    memerlukanOksigen:
-      language === 'id' ? 'Memerlukan Oksigen' : 'Requires Oxygen',
+    memerlukanOksigen: language === 'id' ? 'Memerlukan Oksigen' : 'Requires Oxygen',
     posisiPasien: language === 'id' ? 'Posisi Pasien' : 'Patient Position',
-    tingkatKesadaran:
-      language === 'id' ? 'Tingkat Kesadaran' : 'Level of Consciousness',
+    tingkatKesadaran: language === 'id' ? 'Tingkat Kesadaran' : 'Level of Consciousness',
     tekananDarah: language === 'id' ? 'Tekanan Darah' : 'Blood Pressure',
-    tekananDarahExample:
-      language === 'id' ? 'Contoh: 120/80 mmHg' : 'Example: 120/80 mmHg',
-    nadiExample: language === 'id' ? 'Contoh: 80 bpm' : 'Example: 80 bpm',
-    FrekuensiNafasExample:
-      language === 'id' ? 'Contoh: 16 bpm' : 'Example: 16 bpm',
-    saturasiOksigenExample: language === 'id' ? 'Contoh: 98%' : 'Example: 98%',
-    tingkatKesadaranExample:
-      language === 'id' ? 'Contoh: skor 3-15' : 'Example: score 3-15',
+    tekananDarahExample: language === 'id' ? '120/80 mmHg' : '120/80 mmHg',
+    nadiExample: language === 'id' ? '80 bpm' : '80 bpm',
+    frekuensiNafasExample: language === 'id' ? '16 bpm' : '16 bpm',
+    saturasiOksigenExample: language === 'id' ? '98%' : '98%',
+    tingkatKesadaranExample: language === 'id' ? 'Skor 3-15' : 'Score 3-15',
     nadi: language === 'id' ? 'Nadi' : 'Pulse',
     frekuensiNafas: language === 'id' ? 'Frekuensi Nafas' : 'Respiratory Rate',
-    saturasiOksigen:
-      language === 'id' ? 'Saturasi Oksigen' : 'Oxygen Saturation',
+    saturasiOksigen: language === 'id' ? 'Saturasi Oksigen' : 'Oxygen Saturation',
+    yes: language === 'id' ? 'Ya' : 'Yes',
+    no: language === 'id' ? 'Tidak' : 'No',
+    sitting: language === 'id' ? 'Duduk' : 'Sitting',
+    lying: language === 'id' ? 'Berbaring' : 'Lying Down',
 
-    /* Data Pendamping */
-    jumlahPendamping:
-      language === 'id' ? 'Jumlah Pendamping' : 'Number of Companions',
-    hubungandenganPasien:
-      language === 'id' ? 'Hubungan dengan Pasien' : 'Relationship to Patient',
-    nomorTeleponPendampingMedis:
-      language === 'id'
-        ? 'Nomor Telepon Pendamping Medis'
-        : 'Medical Companion Phone Number',
-    nomorTeleponKeluarga:
-      language === 'id' ? 'Nomor Telepon Keluarga' : 'Family Phone Number',
-    nosuratIzin:
-      language === 'id' ? 'No Surat Izin Praktik ' : 'Permit Letter Number',
+    jumlahPendamping: language === 'id' ? 'Jumlah Pendamping' : 'Number of Companions',
+    hubungandenganPasien: language === 'id' ? 'Hubungan dengan Pasien' : 'Relationship to Patient',
+    nomorTeleponPendampingMedis: language === 'id' ? 'No. Telp Pendamping Medis' : 'Medical Companion Phone',
+    nomorTeleponKeluarga: language === 'id' ? 'No. Telp Keluarga' : 'Family Phone Number',
+    nosuratIzin: language === 'id' ? 'No Surat Izin Praktik' : 'Permit Letter Number',
     namaPendamping: language === 'id' ? 'Nama Pendamping' : 'Companion Name',
-    nosuratIzinExample:
-      language === 'id'
-        ? 'Contoh: Nama Tenaga medis- No SIP'
-        : 'Example: Medical Personnel Name - Permit Number',
-    /* New Document Labels */
-    practiceLicense:
-      language === 'id'
-        ? 'Surat Izin praktik pendamping medis yang berlaku valid (yang berlaku)'
-        : 'Valid medical companion practice license',
-    referralLetter:
-      language === 'id'
-        ? 'Surat Rujukan / Surat penerimaan dari rumah sakit tujuan'
-        : 'Referral Letter / Acceptance letter from destination hospital',
-    manifestTicket:
-      language === 'id'
-        ? 'Manifest / Tiket Pesawat untuk komersil  (Nomor pernerbangan dan rute perjalanan)'
-        : 'Manifest / Flight Ticket for commercial (Flight number and route)',
-    medicalOfficerDoc:
-      language === 'id'
-        ? 'Dokumen Petugas Medis (Sertifikat Pelatihan kegawat daruratan / Keahlian Medivac)'
-        : 'Medical Officer Documents (Emergency Training Certificate / Medivac Expertise)',
+    nosuratIzinExample: language === 'id' ? 'Contoh: No SIP' : 'Example: Permit Number',
+
+    family: language === 'id' ? 'Keluarga' : 'Family',
+    doctor: language === 'id' ? 'Dokter' : 'Doctor',
+    nurse: language === 'id' ? 'Perawat' : 'Nurse',
+    other: language === 'id' ? 'Lainnya' : 'Other',
+
+    practiceLicense: language === 'id' ? 'Surat Izin Praktik Pendamping' : 'Companion Practice License',
+    referralLetter: language === 'id' ? 'Surat Rujukan / Penerimaan' : 'Referral / Acceptance Letter',
+    manifestTicket: language === 'id' ? 'Manifest / Tiket Pesawat' : 'Manifest / Flight Ticket',
+    medicalOfficerDoc: language === 'id' ? 'Dokumen Petugas Medis' : 'Medical Officer Documents',
+
+    patientConditionPhoto: language === 'id' ? 'Foto Kondisi Pasien' : 'Patient Condition Photo',
+    patientId: language === 'id' ? 'KTP Pasien' : 'Patient ID Card',
+    medicalRecord: language === 'id' ? 'Rekam Medis Pasien' : 'Patient Medical Record',
+    flightTicket: language === 'id' ? 'Tiket Pesawat' : 'Flight Ticket',
+
+    fileUploaded: language === 'id' ? 'File terunggah' : 'File uploaded',
+    chooseFile: language === 'id' ? 'Pilih PDF / Image...' : 'Choose PDF / Image...',
+    previewDoc: language === 'id' ? 'Preview Dokumen' : 'Document Preview',
+    confirmFile: language === 'id' ? 'Apakah Anda yakin ingin menggunakan file ini?' : 'Are you sure you want to use this file?',
+    uploadAgain: language === 'id' ? 'Ganti File' : 'Change File',
+    save: language === 'id' ? 'Simpan Dokumen' : 'Save Document',
+
+    successTitle: language === 'id' ? 'Permohonan Berhasil' : 'Request Submitted',
+    successDesc: language === 'id' ? 'Permohonan Anda berhasil dikirim dan sedang dalam antrean verifikasi admin.' : 'Your application was successfully submitted and is pending admin verification.',
+    backDashboard: language === 'id' ? 'Kembali ke Dashboard' : 'Back to Dashboard',
+
+    errorTitle: language === 'id' ? 'Data Belum Lengkap' : 'Incomplete Data',
+    errorDesc: language === 'id' ? 'Harap lengkapi field wajib berikut sebelum melanjutkan:' : 'Please complete the following required fields before proceeding:',
+    completeData: language === 'id' ? 'Lengkapi Sekarang' : 'Complete Now',
+
+    flightSectionDesc: language === 'id' ? 'Informasi detail perjalanan dan armada pesawat.' : 'Flight travel and aircraft details.',
+    patientSectionDesc: language === 'id' ? 'Identitas dan data biologis pasien yang dievakuasi.' : 'Patient identity and biological data.',
+    uploadSectionDesc: language === 'id' ? 'Pastikan file yang diunggah jelas dan dapat dibaca (Maks. 5MB).' : 'Ensure uploaded files are clear and readable (Max 5MB).',
+
+    draftSaved: language === 'id' ? 'Draft berhasil disimpan' : 'Draft saved successfully',
+    uploadSuccess: language === 'id' ? 'Dokumen berhasil disimpan' : 'Document saved',
+    uploadFailed: language === 'id' ? 'Upload gagal' : 'Upload failed',
+    submitFailed: language === 'id' ? 'Terjadi kesalahan saat mengirim data' : 'An error occurred while submitting data',
   };
 
-  /* ===============================
-  STEPS
-  =============================== */
-
-  const steps: any = {
-    id: [
-      { id: 1, name: 'Data Penerbangan' },
-      { id: 2, name: 'Data Pasien' },
-      { id: 3, name: 'Kondisi Pasien' },
-      { id: 4, name: 'Data Pendamping' },
-      { id: 5, name: 'Upload Dokumen' },
-    ],
-
-    en: [
-      { id: 1, name: 'Flight Data' },
-      { id: 2, name: 'Patient Data' },
-      { id: 3, name: 'Patient Condition' },
-      { id: 4, name: 'Companion Data' },
-      { id: 5, name: 'Upload Documents' },
-    ],
-  };
-
-  /* ===============================
-  FUNCTION
-  =============================== */
+  const steps = [
+    { id: 1, name: t.flightData },
+    { id: 2, name: t.patientData },
+    { id: 3, name: t.patientCondition },
+    { id: 4, name: t.companionData },
+    { id: 5, name: t.uploadDocuments },
+  ];
 
   function toggleLanguage() {
     setLanguage(language === 'id' ? 'en' : 'id');
@@ -235,13 +231,15 @@ export default function PermohonanPage() {
     const errors: string[] = [];
 
     if (currentStep === 1 && !formData.tanggalPerjalanan) {
-      errors.push('Tanggal perjalanan wajib diisi');
+      errors.push(language === 'id' ? 'Tanggal perjalanan wajib diisi' : 'Travel date is required');
     }
+
     if (currentStep === 1 && !formData.jamPerjalanan) {
-      errors.push('Jam perjalanan wajib diisi');
+      errors.push(language === 'id' ? 'Jam perjalanan wajib diisi' : 'Travel time is required');
     }
+
     if (currentStep === 2 && !formData.namaPasien) {
-      errors.push('Nama pasien wajib diisi');
+      errors.push(language === 'id' ? 'Nama pasien wajib diisi' : 'Patient name is required');
     }
 
     if (errors.length > 0) {
@@ -251,24 +249,30 @@ export default function PermohonanPage() {
     }
 
     setCurrentStep((prev) => Math.min(prev + 1, 5));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function prevStep() {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
   function handleSaveDraft() {
-    console.log('SAVE DRAFT', formData);
-    alert('Draft saved');
+    toast.success(t.draftSaved);
   }
 
   async function handleSubmit() {
     const errors: string[] = [];
-    if (!formData.tanggalPerjalanan)
-      errors.push('Tanggal perjalanan wajib diisi');
-    if (!formData.namaPasien) errors.push('Nama pasien wajib diisi');
+
+    if (!formData.tanggalPerjalanan) {
+      errors.push(language === 'id' ? 'Tanggal perjalanan wajib diisi' : 'Travel date is required');
+    }
+
+    if (!formData.namaPasien) {
+      errors.push(language === 'id' ? 'Nama pasien wajib diisi' : 'Patient name is required');
+    }
 
     if (errors.length > 0) {
       setErrorMessages(errors);
@@ -280,51 +284,38 @@ export default function PermohonanPage() {
       setLoadingSubmit(true);
       const data = new FormData();
 
-      /* DATA PENERBANGAN */
       data.append('jenisLayanan', formData.jenisLayanan || '');
       data.append('jenisPesawat', formData.jenisPesawat || '');
       data.append('namaGroundhandling', formData.namaGroundhandling || '');
       data.append('namaPetugas', formData.namaPetugas || '');
       data.append('noTeleponKantor', formData.noTelepon || '');
       data.append('emailPerusahaan', formData.emailPerusahaan || '');
-
       data.append('namaMaskapai', formData.namaMaskapai || '');
       data.append('noPenerbangan', formData.noPenerbangan || '');
       data.append('noKursi', formData.noKursi || '');
-
       data.append('tanggalPerjalanan', formData.tanggalPerjalanan || '');
       data.append('jamPerjalanan', formData.jamPerjalanan || '');
-
-      /* DATA PASIEN */
 
       data.append('namaPasien', formData.namaPasien || '');
       data.append('jenisKelamin', formData.jenisKelamin || '');
       data.append('tanggalLahir', formData.tanggalLahir || '');
 
-      /* KONDISI PASIEN */
-
       data.append('oksigen', formData.memerlukanOksigen || '');
       data.append('posisiPasien', formData.posisiPasien || '');
       data.append('tingkatKesadaran', formData.tingkatKesadaran || '');
-
       data.append('tekananDarah', formData.tekananDarah || '');
       data.append('nadi', formData.nadi || '');
       data.append('frekuensiPernafasan', formData.frekuensiNafas || '');
       data.append('saturasiOksigen', formData.saturasiOksigen || '');
 
-      /* DATA PENDAMPING */
-
       data.append('jumlahPendamping', formData.jumlahPendamping || '');
       data.append('namaPendamping', formData.namaPendamping || '');
       data.append('hubunganPasien', formData.hubunganPendamping || '');
-
-      data.append(
-        'noTeleponPendamping',
-        formData.nomorTeleponPendampingMedis || '',
-      );
+      data.append('noTeleponPendamping', formData.nomorTeleponPendampingMedis || '');
       data.append('noTeleponKeluarga', formData.nomorTeleponKeluarga || '');
-      data.append('noTeleponKeluarga', formData.nosuratIzin || '');
+      data.append('nosuratIzin', formData.nosuratIzin || '');
 
+      data.append('noSuratPraktik', formData.noSuratPraktik || '');
       data.append('fotoKondisiPasien', formData.fotoKondisiPasien || '');
       data.append('ktpPasien', formData.ktpPasien || '');
       data.append('manifetPrivateJet', formData.manifetPrivateJet || '');
@@ -332,6 +323,9 @@ export default function PermohonanPage() {
       data.append('suratRujukan', formData.suratRujukan || '');
       data.append('tiketPesawat', formData.tiketPesawat || '');
       data.append('dokumentPetugasMedis', formData.dokumentPetugasMedis || '');
+
+      // 👇 PERBAIKAN: Memaksa pengiriman status pending dari Frontend 👇
+      data.append('status', 'pending');
 
       const res = await fetch('/api/evacuations', {
         method: 'POST',
@@ -345,46 +339,12 @@ export default function PermohonanPage() {
         throw new Error(result.error || 'Submit gagal');
       }
 
-      /* TAMPILKAN MODAL SUKSES */
       setShowSuccessModal(true);
     } catch (error) {
       console.error(error);
-      toast.error('Terjadi kesalahan saat submit');
-    }
-  }
-
-  async function handleUpload(file: File, field: string) {
-    try {
-      const data = new FormData();
-      data.append('file', file);
-      data.append('fileType', field);
-
-      const res = await fetch('/api/upload/medical-document', {
-        method: 'POST',
-        body: data,
-        credentials: 'include',
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) throw new Error(result.error);
-
-      const filePath = result.data.path;
-
-      setFormData((prev: any) => ({
-        ...prev,
-        [field]: filePath,
-      }));
-
-      // simpan preview
-      setPreviewFiles((prev: any) => ({
-        ...prev,
-        [field]: filePath,
-      }));
-
-      console.log('UPLOAD SUCCESS:', field, filePath);
-    } catch (error) {
-      console.error('Upload error:', error);
+      toast.error(t.submitFailed);
+    } finally {
+      setLoadingSubmit(false);
     }
   }
 
@@ -417,13 +377,21 @@ export default function PermohonanPage() {
       nomorTeleponPendampingMedis: '',
       nomorTeleponKeluarga: '',
       nosuratIzin: '',
+      noSuratPraktik: null,
+      fotoKondisiPasien: null,
+      ktpPasien: null,
+      manifetPrivateJet: null,
+      rekamMedisPasien: null,
+      suratRujukan: null,
+      tiketPesawat: null,
+      dokumentPetugasMedis: null,
     });
     setCurrentStep(1);
+    router.push('/dashboard');
   }
 
   function handlePreview(file: File, field: string) {
     const previewUrl = URL.createObjectURL(file);
-
     setPreviewFileUrl(previewUrl);
     setSelectedFile(file);
     setPreviewField(field);
@@ -436,7 +404,6 @@ export default function PermohonanPage() {
 
     try {
       const data = new FormData();
-
       data.append('file', selectedFile);
       data.append('fileType', previewField);
 
@@ -455,10 +422,11 @@ export default function PermohonanPage() {
         [previewField]: result.data.path,
       }));
 
-      // hanya tutup modal
-      setPreviewModal(false);
+      resetPreview();
+      toast.success(t.uploadSuccess);
     } catch (error) {
       console.error('Upload error:', error);
+      toast.error(t.uploadFailed);
     }
   }
 
@@ -479,7 +447,6 @@ export default function PermohonanPage() {
     setPreviewField(null);
     setPreviewMimeType(null);
 
-    // RESET INPUT FILE
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -491,1018 +458,725 @@ export default function PermohonanPage() {
 
   if (authLoading) return null;
 
-  /* ===============================
-  RETURN
-  =============================== */
+  // PREMIUM UI CLASSES
+  const inputClass =
+    'h-12 w-full rounded-xl bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-blue-500/15 focus-visible:border-blue-500 hover:border-slate-300 transition-all duration-300 shadow-sm';
+
+  const labelClass = 'text-sm font-semibold text-slate-700 tracking-tight mb-1 block';
+
+  const renderUploadField = (
+    label: string,
+    field: string,
+    required = false,
+  ) => (
+    <div className="space-y-2 w-full">
+      <Label className={labelClass}>
+        {label} {required && <span className="text-rose-500 ml-1">*</span>}
+      </Label>
+
+      <div
+        className={cn(
+          'relative flex items-center justify-between border-2 rounded-2xl px-4 py-3 transition-all duration-300 group',
+          formData[field]
+            ? 'border-emerald-500 bg-emerald-50/50 shadow-sm shadow-emerald-100'
+            : 'border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-blue-400 cursor-pointer',
+        )}
+      >
+        <div className="relative w-full flex items-center gap-4 overflow-hidden">
+          <Input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,application/pdf"
+            className="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handlePreview(file, field);
+            }}
+          />
+
+          <div
+            className={cn(
+              'p-3 rounded-xl flex-shrink-0 transition-colors',
+              formData[field]
+                ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200'
+                : 'bg-white border shadow-sm text-slate-400 group-hover:text-blue-500 group-hover:border-blue-200',
+            )}
+          >
+            {formData[field] ? (
+              <Check size={20} strokeWidth={2.5} />
+            ) : (
+              <UploadCloud size={20} />
+            )}
+          </div>
+
+          <div className="flex flex-col truncate">
+            <span
+              className={cn(
+                'text-sm font-semibold truncate',
+                formData[field] ? 'text-emerald-800' : 'text-slate-700',
+              )}
+            >
+              {formData[field] ? t.fileUploaded : t.chooseFile}
+            </span>
+          </div>
+        </div>
+
+        {formData[field] && (
+          <button
+            type="button"
+            className="relative z-20 p-2.5 rounded-xl bg-white hover:bg-emerald-100 text-emerald-600 border border-emerald-100 shadow-sm transition-all ml-4 flex-shrink-0"
+            onClick={() => openUploadedPreview(formData[field])}
+          >
+            <Eye size={18} strokeWidth={2.5} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Language */}
-        <div className="flex justify-end mb-4">
-          <Button variant="outline" size="sm" onClick={toggleLanguage}>
-            <Globe className="size-4 mr-2" />
-            {language === 'id' ? 'English' : 'Bahasa Indonesia'}
-          </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/50 py-10 px-4 sm:px-6 lg:px-8">
+      
+  
+
+      <div className="max-w-[52rem] mx-auto space-y-10">
+        {/* HEADER */}
+        <div className="text-center space-y-4 pt-6">
+          <div className="inline-flex items-center justify-center p-4 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-2xl mb-2 shadow-lg shadow-blue-500/30">
+            <FileText className="size-8" strokeWidth={2} />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            {t.title}
+          </h1>
+          <p className="text-slate-500 font-medium text-lg">{t.subtitle}</p>
         </div>
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">{t.title}</h1>
-          <p>{t.subtitle}</p>
-        </div>
+        {/* MAIN CARD */}
+        <div className="bg-white/95 backdrop-blur-xl p-6 sm:p-12 rounded-[2.5rem] shadow-2xl shadow-blue-900/5 border border-white relative overflow-visible">
+          
+          {/* STEPPER */}
+          <div className="w-full max-w-3xl mx-auto mb-14 mt-2">
+            <div className="flex items-start justify-between relative">
+              <div className="absolute top-5 left-8 right-8 h-[3px] bg-slate-100 -z-10 rounded-full" />
+              <div
+                className="absolute top-5 left-8 h-[3px] bg-blue-600 -z-10 transition-all duration-700 ease-in-out rounded-full shadow-[0_0_10px_rgba(37,99,235,0.5)]"
+                style={{
+                  width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - 4rem)`,
+                }}
+              />
 
-        {/* Stepper */}
-        <div className="flex justify-center mb-10">
-          {steps[language].map((step: any, index: number) => (
-            <div key={step.id} className="flex items-center">
-              <div className="flex flex-col items-center">
+              {steps.map((step) => (
                 <div
-                  className={cn(
-                    'w-10 h-10 rounded-full flex items-center justify-center',
-                    currentStep >= step.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200',
-                  )}
+                  key={step.id}
+                  className="flex flex-col items-center relative z-10 w-20 group cursor-default"
                 >
-                  {currentStep > step.id ? <Check size={18} /> : step.id}
-                </div>
-                <p className="text-xs mt-2">{step.name}</p>
-              </div>
-              {index !== 4 && (
-                <div
-                  className={cn(
-                    'w-20 h-1 mx-2',
-                    currentStep > step.id ? 'bg-blue-600' : 'bg-gray-200',
-                  )}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* FORM */}
-        <div className="bg-white p-8 rounded-lg shadow">
-          {/* STEP 1 */}
-          {currentStep === 1 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {t.flightData}
-              </h2>
-              <div className="space-y-4">
-                {/* Jenis Layanan */}
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label
-                      htmlFor="jenisLayanan"
-                      className="text-sm text-gray-700"
+                  <div
+                    className={cn(
+                      'w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 border-2',
+                      currentStep > step.id
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-md'
+                        : currentStep === step.id
+                        ? 'bg-white border-blue-600 text-blue-600 shadow-[0_0_0_4px_rgba(37,99,235,0.15)] scale-110'
+                        : 'bg-white border-slate-200 text-slate-400',
+                    )}
+                  >
+                    {currentStep > step.id ? (
+                      <Check size={18} strokeWidth={3} />
+                    ) : (
+                      step.id
+                    )}
+                  </div>
+                  <div className="absolute top-14 w-28 text-center">
+                    <span
+                      className={cn(
+                        'text-xs font-semibold leading-tight transition-colors duration-300',
+                        currentStep >= step.id
+                          ? 'text-slate-900'
+                          : 'text-slate-400',
+                      )}
                     >
-                      {t.serviceType}
-                    </Label>
+                      {step.name}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* FORM CONTENT */}
+          <div className="mt-8">
+            {/* STEP 1 */}
+            {currentStep === 1 && (
+              <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-500">
+                <div className="border-b border-slate-100 pb-5">
+                  <h2 className="text-2xl font-bold text-slate-900">
+                    {t.flightData}
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1.5 font-medium">
+                    {t.flightSectionDesc}
+                  </p>
+                </div>
+
+                {/* Wrapper untuk input panjang kebawah */}
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.serviceType}</Label>
                     <Select
-                      value={formData.jenisLayanan || ''}
+                      value={formData.jenisLayanan}
                       onValueChange={(value) =>
                         updateField('jenisLayanan', value)
                       }
                     >
-                      <SelectTrigger
-                        id="jenisLayanan"
-                        className="mt-1.5 w-full"
-                      >
+                      <SelectTrigger className={inputClass}>
                         <SelectValue placeholder={t.serviceTypePlaceholder} />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="keberangkatan">
-                          Keberangkatan
-                        </SelectItem>
-
-                        <SelectItem value="kedatangan">Kedatangan</SelectItem>
+                      <SelectContent className="rounded-xl shadow-lg border-slate-100">
+                        <SelectItem value="keberangkatan">{t.departure}</SelectItem>
+                        <SelectItem value="kedatangan">{t.arrival}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.aircraftType}</Label>
+                    <Select
+                      value={formData.jenisPesawat}
+                      onValueChange={(value) =>
+                        updateField('jenisPesawat', value)
+                      }
+                    >
+                      <SelectTrigger className={inputClass}>
+                        <SelectValue placeholder={t.aircraftTypePlaceholder} />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-lg border-slate-100">
+                        <SelectItem value="komersial">{t.commercial}</SelectItem>
+                        <SelectItem value="jetPribadi">{t.privateJet}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.groundhandlingName}</Label>
+                    <Input
+                      value={formData.namaGroundhandling}
+                      onChange={(e) => updateField('namaGroundhandling', e.target.value)}
+                      className={inputClass}
+                      placeholder="Ex: PT Gapura Angkasa"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.officerName}</Label>
+                    <Input
+                      value={formData.namaPetugas}
+                      onChange={(e) => updateField('namaPetugas', e.target.value)}
+                      className={inputClass}
+                      placeholder="John Doe"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.officePhone}</Label>
+                    <Input
+                      type="tel"
+                      value={formData.noTelepon}
+                      onChange={(e) => updateField('noTelepon', e.target.value)}
+                      className={inputClass}
+                      placeholder="+62 812..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.companyEmail}</Label>
+                    <Input
+                      type="email"
+                      value={formData.emailPerusahaan}
+                      onChange={(e) => updateField('emailPerusahaan', e.target.value)}
+                      className={inputClass}
+                      placeholder="contact@company.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.airlineName}</Label>
+                    <Input
+                      value={formData.namaMaskapai}
+                      onChange={(e) => updateField('namaMaskapai', e.target.value)}
+                      className={inputClass}
+                      placeholder={t.airlineExample}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.flightNumber}</Label>
+                    <Input
+                      value={formData.noPenerbangan}
+                      onChange={(e) => updateField('noPenerbangan', e.target.value)}
+                      className={inputClass}
+                      placeholder={t.flightExample}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.seatNumber} <span className="text-slate-400 font-normal text-xs ml-1">({t.seatNote})</span></Label>
+                    <Input
+                      value={formData.noKursi}
+                      onChange={(e) => updateField('noKursi', e.target.value)}
+                      className={inputClass}
+                      placeholder="Ex: 12A"
+                    />
+                  </div>
+
+                  {/* KHUSUS UNTUK TANGGAL & JAM: Membagi 2 kolom menggunakan Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                    <div className="space-y-2">
+                      <Label className={labelClass}>
+                        {t.travelDate} <span className="text-rose-500">*</span>
+                      </Label>
+                      <Input
+                        type="date"
+                        value={formData.tanggalPerjalanan}
+                        onChange={(e) => updateField('tanggalPerjalanan', e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className={labelClass}>
+                        {t.travelTime} <span className="text-rose-500">*</span>
+                      </Label>
+                      <Input
+                        type="time"
+                        value={formData.jamPerjalanan}
+                        onChange={(e) => updateField('jamPerjalanan', e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
                 </div>
+              </div>
+            )}
 
-                {/* Jenis Pesawat */}
-                <div>
-                  <Label
-                    htmlFor="jenisPesawat"
-                    className="text-sm text-gray-700"
-                  >
-                    {t.aircraftType}
-                  </Label>
-
-                  <Select
-                    value={formData.jenisPesawat}
-                    onValueChange={(value) =>
-                      updateField('jenisPesawat', value)
-                    }
-                  >
-                    <SelectTrigger id="jenisPesawat" className="mt-1.5 w-full">
-                      <SelectValue placeholder={t.aircraftTypePlaceholder} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="komersial">{t.commercial}</SelectItem>
-                      <SelectItem value="jetPribadi">{t.privateJet}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Nama Groundhandling */}
-                <div>
-                  <Label
-                    htmlFor="namaGroundhandling"
-                    className="text-sm text-gray-700"
-                  >
-                    {t.groundhandlingName}
-                  </Label>
-                  <Input
-                    id="namaGroundhandling"
-                    value={formData.namaGroundhandling}
-                    onChange={(e) =>
-                      updateField('namaGroundhandling', e.target.value)
-                    }
-                    className="mt-1.5"
-                  />
-                </div>
-
-                {/* Nama Petugas */}
-                <div>
-                  <Label
-                    htmlFor="namaPetugas"
-                    className="text-sm text-gray-700"
-                  >
-                    {t.officerName}
-                  </Label>
-                  <Input
-                    id="namaPetugas"
-                    value={formData.namaPetugas}
-                    onChange={(e) => updateField('namaPetugas', e.target.value)}
-                    className="mt-1.5"
-                  />
-                </div>
-
-                {/* No Telepon */}
-                <div>
-                  <Label htmlFor="noTelepon" className="text-sm text-gray-700">
-                    {t.officePhone}
-                  </Label>
-                  <Input
-                    id="noTelepon"
-                    type="tel"
-                    value={formData.noTelepon}
-                    onChange={(e) => updateField('noTelepon', e.target.value)}
-                    className="mt-1.5"
-                  />
-                </div>
-
-                {/* Email */}
-                <div>
-                  <Label
-                    htmlFor="emailPerusahaan"
-                    className="text-sm text-gray-700"
-                  >
-                    {t.companyEmail}
-                  </Label>
-                  <Input
-                    id="emailPerusahaan"
-                    type="email"
-                    value={formData.emailPerusahaan}
-                    onChange={(e) =>
-                      updateField('emailPerusahaan', e.target.value)
-                    }
-                    className="mt-1.5"
-                  />
-                </div>
-
-                {/* Maskapai */}
-                <div>
-                  <Label
-                    htmlFor="namaMaskapai"
-                    className="text-sm text-gray-700"
-                  >
-                    {t.airlineName}
-                  </Label>
-                  <Input
-                    id="namaMaskapai"
-                    value={formData.namaMaskapai}
-                    onChange={(e) =>
-                      updateField('namaMaskapai', e.target.value)
-                    }
-                    className="mt-1.5"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {t.airlineExample}
+            {/* STEP 2 */}
+            {currentStep === 2 && (
+              <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-500">
+                <div className="border-b border-slate-100 pb-5">
+                  <h2 className="text-2xl font-bold text-slate-900">
+                    {t.patientData}
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1.5 font-medium">
+                    {t.patientSectionDesc}
                   </p>
                 </div>
 
-                {/* No Penerbangan */}
-                <div>
-                  <Label
-                    htmlFor="noPenerbangan"
-                    className="text-sm text-gray-700"
-                  >
-                    {t.flightNumber}
-                  </Label>
-                  <Input
-                    id="noPenerbangan"
-                    value={formData.noPenerbangan}
-                    onChange={(e) =>
-                      updateField('noPenerbangan', e.target.value)
-                    }
-                    className="mt-1.5"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {t.flightExample}
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className={labelClass}>
+                      {t.patientName} <span className="text-rose-500">*</span>
+                    </Label>
+                    <Input
+                      value={formData.namaPasien}
+                      onChange={(e) => updateField('namaPasien', e.target.value)}
+                      className={inputClass}
+                      placeholder="Jane Doe"
+                    />
+                  </div>
+
+                  {/* KHUSUS GENDER & TANGGAL LAHIR: Membagi 2 kolom */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                    <div className="space-y-2">
+                      <Label className={labelClass}>{t.gender}</Label>
+                      <Select
+                        value={formData.jenisKelamin}
+                        onValueChange={(value) => updateField('jenisKelamin', value)}
+                      >
+                        <SelectTrigger className={inputClass}>
+                          <SelectValue placeholder={t.gender} />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl shadow-lg border-slate-100">
+                          <SelectItem value="LakiLaki">{t.male}</SelectItem>
+                          <SelectItem value="Perempuan">{t.female}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className={labelClass}>{t.tanggalLahir}</Label>
+                      <Input
+                        type="date"
+                        value={formData.tanggalLahir}
+                        onChange={(e) => updateField('tanggalLahir', e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3 */}
+            {currentStep === 3 && (
+              <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-500">
+                <div className="border-b border-slate-100 pb-5">
+                  <h2 className="text-2xl font-bold text-slate-900">
+                    {t.patientCondition}
+                  </h2>
+                </div>
+
+                {/* Semua Form Full-Width */}
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.memerlukanOksigen}</Label>
+                    <Select
+                      value={formData.memerlukanOksigen}
+                      onValueChange={(value) => updateField('memerlukanOksigen', value)}
+                    >
+                      <SelectTrigger className={inputClass}>
+                        <SelectValue placeholder={t.memerlukanOksigen} />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-lg border-slate-100">
+                        <SelectItem value="ya">{t.yes}</SelectItem>
+                        <SelectItem value="tidak">{t.no}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.posisiPasien}</Label>
+                    <Select
+                      value={formData.posisiPasien}
+                      onValueChange={(value) => updateField('posisiPasien', value)}
+                    >
+                      <SelectTrigger className={inputClass}>
+                        <SelectValue placeholder={t.posisiPasien} />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-lg border-slate-100">
+                        <SelectItem value="duduk">{t.sitting}</SelectItem>
+                        <SelectItem value="berbaring">{t.lying}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.tingkatKesadaran}</Label>
+                    <Input
+                      value={formData.tingkatKesadaran}
+                      onChange={(e) => updateField('tingkatKesadaran', e.target.value)}
+                      className={inputClass}
+                      placeholder={t.tingkatKesadaranExample}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.tekananDarah}</Label>
+                    <Input
+                      value={formData.tekananDarah}
+                      onChange={(e) => updateField('tekananDarah', e.target.value)}
+                      className={inputClass}
+                      placeholder={t.tekananDarahExample}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.nadi}</Label>
+                    <Input
+                      value={formData.nadi}
+                      onChange={(e) => updateField('nadi', e.target.value)}
+                      className={inputClass}
+                      placeholder={t.nadiExample}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.frekuensiNafas}</Label>
+                    <Input
+                      value={formData.frekuensiNafas}
+                      onChange={(e) => updateField('frekuensiNafas', e.target.value)}
+                      className={inputClass}
+                      placeholder={t.frekuensiNafasExample}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.saturasiOksigen}</Label>
+                    <Input
+                      value={formData.saturasiOksigen}
+                      onChange={(e) => updateField('saturasiOksigen', e.target.value)}
+                      className={inputClass}
+                      placeholder={t.saturasiOksigenExample}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 4 */}
+            {currentStep === 4 && (
+              <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-500">
+                <div className="border-b border-slate-100 pb-5">
+                  <h2 className="text-2xl font-bold text-slate-900">
+                    {t.companionData}
+                  </h2>
+                </div>
+
+                {/* Semua Form Full-Width */}
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.jumlahPendamping}</Label>
+                    <Input
+                      type="number"
+                      value={formData.jumlahPendamping}
+                      onChange={(e) => updateField('jumlahPendamping', e.target.value)}
+                      className={inputClass}
+                      min="0"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>
+                      {t.hubungandenganPasien}
+                    </Label>
+                    <Select
+                      value={formData.hubunganPendamping}
+                      onValueChange={(value) => updateField('hubunganPendamping', value)}
+                    >
+                      <SelectTrigger className={inputClass}>
+                        <SelectValue placeholder={t.hubungandenganPasien} />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-lg border-slate-100">
+                        <SelectItem value="Keluarga">{t.family}</SelectItem>
+                        <SelectItem value="Dokter">{t.doctor}</SelectItem>
+                        <SelectItem value="Perawat">{t.nurse}</SelectItem>
+                        <SelectItem value="Lainnya">{t.other}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.namaPendamping}</Label>
+                    <Input
+                      value={formData.namaPendamping}
+                      onChange={(e) => updateField('namaPendamping', e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>
+                      {t.nomorTeleponPendampingMedis}
+                    </Label>
+                    <Input
+                      type="text"
+                      value={formData.nomorTeleponPendampingMedis}
+                      onChange={(e) => updateField('nomorTeleponPendampingMedis', e.target.value)}
+                      className={inputClass}
+                      placeholder="+62..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>
+                      {t.nomorTeleponKeluarga}
+                    </Label>
+                    <Input
+                      type="text"
+                      value={formData.nomorTeleponKeluarga}
+                      onChange={(e) => updateField('nomorTeleponKeluarga', e.target.value)}
+                      className={inputClass}
+                      placeholder="+62..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className={labelClass}>{t.nosuratIzin}</Label>
+                    <Input
+                      value={formData.nosuratIzin}
+                      onChange={(e) => updateField('nosuratIzin', e.target.value)}
+                      className={inputClass}
+                      placeholder={t.nosuratIzinExample}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 5 */}
+            {currentStep === 5 && (
+              <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-500">
+                <div className="border-b border-slate-100 pb-5">
+                  <h2 className="text-2xl font-bold text-slate-900">
+                    {t.uploadDocuments}
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1.5 font-medium">
+                    {t.uploadSectionDesc}
                   </p>
                 </div>
 
-                {/* No Kursi */}
-                <div>
-                  <Label htmlFor="noKursi" className="text-sm text-gray-700">
-                    {t.seatNumber}
-                  </Label>
-                  <Input
-                    id="noKursi"
-                    value={formData.noKursi}
-                    onChange={(e) => updateField('noKursi', e.target.value)}
-                    className="mt-1.5"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">{t.seatNote}</p>
-                </div>
-
-                {/* Tanggal & Jam */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label
-                      htmlFor="tanggalPerjalanan"
-                      className="text-sm text-gray-700"
-                    >
-                      {t.travelDate}{' '}
-                      <span className="text-red-500 font-bold">*</span>
-                    </Label>
-                    <Input
-                      id="tanggalPerjalanan"
-                      type="date"
-                      value={formData.tanggalPerjalanan}
-                      onChange={(e) =>
-                        updateField('tanggalPerjalanan', e.target.value)
-                      }
-                      className="mt-1.5"
-                    />
-                  </div>
-
-                  <div>
-                    <Label
-                      htmlFor="jamPerjalanan"
-                      className="text-sm text-gray-700"
-                    >
-                      {t.travelTime}
-                    </Label>
-                    <Input
-                      id="jamPerjalanan"
-                      type="time"
-                      value={formData.jamPerjalanan}
-                      onChange={(e) =>
-                        updateField('jamPerjalanan', e.target.value)
-                      }
-                      className="mt-1.5"
-                    />
-                  </div>
+                {/* Semua Form Full-Width */}
+                <div className="space-y-6">
+                  {renderUploadField(t.practiceLicense, 'noSuratPraktik', true)}
+                  {renderUploadField(t.patientConditionPhoto, 'fotoKondisiPasien')}
+                  {renderUploadField(t.patientId, 'ktpPasien')}
+                  {renderUploadField(t.manifestTicket, 'manifetPrivateJet')}
+                  {renderUploadField(t.medicalRecord, 'rekamMedisPasien')}
+                  {renderUploadField(t.referralLetter, 'suratRujukan', true)}
+                  {renderUploadField(t.flightTicket, 'tiketPesawat')}
+                  {renderUploadField(t.medicalOfficerDoc, 'dokumentPetugasMedis')}
                 </div>
               </div>
-            </div>
-          )}
-          {/* STEP 2 */}
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {t.patientData}
-              </h2>
-              {/* Nama Pasien */}
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="namaPasien" className="text-sm text-gray-700">
-                    {t.patientName}{' '}
-                    <span className="text-red-500 font-bold">*</span>
-                  </Label>
-                  <Input
-                    id="namaPasien"
-                    value={formData.namaPasien}
-                    onChange={(e) => updateField('namaPasien', e.target.value)}
-                    className="mt-1.5"
-                  />
-                </div>
+            )}
+          </div>
 
-                {/* Jenis Kelamin */}
-                <div>
-                  <Label htmlFor="jenisKelamin">{t.gender}</Label>
-                  <Select
-                    value={formData.jenisKelamin}
-                    onValueChange={(value) =>
-                      updateField('jenisKelamin', value)
-                    }
-                  >
-                    <SelectTrigger id="jenisKelamin" className="mt-1.5 w-full">
-                      <SelectValue placeholder={t.gender} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="LakiLaki">
-                        {language === 'id' ? 'Laki-laki' : 'Male'}
-                      </SelectItem>
-                      <SelectItem value="Perempuan">
-                        {language === 'id' ? 'Perempuan' : 'Female'}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Tanggal Lahir */}
-                <div>
-                  <Label htmlFor="tanggalLahir">{t.tanggalLahir}</Label>
-                  <Input
-                    id="tanggalLahir"
-                    type="date"
-                    value={formData.tanggalLahir}
-                    onChange={(e) =>
-                      updateField('tanggalLahir', e.target.value)
-                    }
-                    className="mt-1.5"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3 */}
-          {currentStep === 3 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {t.patientCondition}
-              </h2>
-
-              {/* Memerlukan Oksigen */}
-              <div>
-                <Label
-                  htmlFor="memerlukanOksigen"
-                  className="text-sm text-gray-700"
-                >
-                  {t.memerlukanOksigen}
-                </Label>
-                <Select
-                  value={formData.memerlukanOksigen}
-                  onValueChange={(value) =>
-                    updateField('memerlukanOksigen', value)
-                  }
-                >
-                  <SelectTrigger
-                    id="memerlukanOksigen"
-                    className="mt-1.5 w-full"
-                  >
-                    <SelectValue placeholder={t.memerlukanOksigen} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ya">
-                      {language === 'id' ? 'Ya' : 'Yes'}
-                    </SelectItem>
-                    <SelectItem value="tidak">
-                      {language === 'id' ? 'Tidak' : 'No'}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Posisi Pasien */}
-              <div>
-                <Label htmlFor="posisiPasien" className="text-sm text-gray-700">
-                  {t.posisiPasien}
-                </Label>
-                <Select
-                  value={formData.posisiPasien}
-                  onValueChange={(value) => updateField('posisiPasien', value)}
-                >
-                  <SelectTrigger id="posisiPasien" className="mt-1.5 w-full">
-                    <SelectValue placeholder={t.posisiPasien} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="duduk">
-                      {language === 'id' ? 'Duduk' : 'Lie Down'}
-                    </SelectItem>
-                    <SelectItem value="berbaring">
-                      {language === 'id' ? 'Berbaring' : 'Sitting'}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Tingkat Kesadaran */}
-              <div>
-                <Label
-                  htmlFor="tingkatKesadaran"
-                  className="text-sm text-gray-700"
-                >
-                  {t.tingkatKesadaran}
-                </Label>
-                <Input
-                  id="tingkatKesadaran"
-                  value={formData.tingkatKesadaran}
-                  onChange={(e) =>
-                    updateField('tingkatKesadaran', e.target.value)
-                  }
-                  className="mt-1.5"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t.tingkatKesadaranExample}
-                </p>
-              </div>
-
-              {/* Tekanan Darah */}
-              <div>
-                <Label htmlFor="tekananDarah" className="text-sm text-gray-700">
-                  {t.tekananDarah}
-                </Label>
-                <Input
-                  id="tekananDarah"
-                  value={formData.tekananDarah}
-                  onChange={(e) => updateField('tekananDarah', e.target.value)}
-                  className="mt-1.5"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t.tekananDarahExample}
-                </p>
-              </div>
-
-              {/* Nadi */}
-              <div>
-                <Label htmlFor="nadi" className="text-sm text-gray-700">
-                  {t.nadi}
-                </Label>
-                <Input
-                  id="nadi"
-                  value={formData.nadi}
-                  onChange={(e) => updateField('nadi', e.target.value)}
-                  className="mt-1.5"
-                />
-                <p className="text-xs text-gray-500 mt-1">{t.nadiExample}</p>
-              </div>
-
-              {/* Frekuensi Nafas */}
-              <div>
-                <Label
-                  htmlFor="frekuensiNafas"
-                  className="text-sm text-gray-700"
-                >
-                  {t.frekuensiNafas}
-                </Label>
-                <Input
-                  id="frekuensiNafas"
-                  value={formData.frekuensiNafas}
-                  onChange={(e) =>
-                    updateField('frekuensiNafas', e.target.value)
-                  }
-                  className="mt-1.5"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t.FrekuensiNafasExample}
-                </p>
-              </div>
-
-              {/* Saturasi Oksigen */}
-              <div>
-                <Label
-                  htmlFor="saturasiOksigen"
-                  className="text-sm text-gray-700"
-                >
-                  {t.saturasiOksigen}
-                </Label>
-                <Input
-                  id="saturasiOksigen"
-                  value={formData.saturasiOksigen}
-                  onChange={(e) =>
-                    updateField('saturasiOksigen', e.target.value)
-                  }
-                  className="mt-1.5"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t.saturasiOksigenExample}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4 */}
-          {currentStep === 4 && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {t.companionData}
-              </h2>
-
-              {/* Jumlah Pendamping */}
-              <div>
-                <Label
-                  htmlFor="jumlahPendamping"
-                  className="text-sm text-gray-700"
-                >
-                  {t.jumlahPendamping}
-                </Label>
-                <Input
-                  id="jumlahPendamping"
-                  type="number"
-                  value={formData.jumlahPendamping}
-                  onChange={(e) =>
-                    updateField('jumlahPendamping', e.target.value)
-                  }
-                  className="mt-1.5"
-                />
-              </div>
-
-              {/* Hubungan dengan Pasien */}
-              <div>
-                <Label
-                  htmlFor="hubunganPendamping"
-                  className="text-sm text-gray-700"
-                >
-                  {t.hubungandenganPasien}
-                </Label>
-                <Select
-                  value={formData.hubunganPendamping}
-                  onValueChange={(value) =>
-                    updateField('hubunganPendamping', value)
-                  }
-                >
-                  <SelectTrigger
-                    id="hubunganPendamping"
-                    className="mt-1.5 w-full"
-                  >
-                    <SelectValue placeholder={t.hubungandenganPasien} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Keluarga">Keluarga</SelectItem>
-                    <SelectItem value="Dokter">Dokter</SelectItem>
-                    <SelectItem value="Perawat">Perawat</SelectItem>
-                    <SelectItem value="Lainnya">Lainnya</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Nama Pendamping */}
-              <div>
-                <Label
-                  htmlFor="namaPendamping"
-                  className="text-sm text-gray-700"
-                >
-                  {t.namaPendamping}
-                </Label>
-                <Input
-                  id="namaPendamping"
-                  value={formData.namaPendamping}
-                  onChange={(e) =>
-                    updateField('namaPendamping', e.target.value)
-                  }
-                  className="mt-1.5"
-                />
-              </div>
-
-              {/* Nomor Telepon Pendamping Medis */}
-              <div>
-                <Label
-                  htmlFor="nomorTeleponPendampingMedis"
-                  className="text-sm text-gray-700"
-                >
-                  {t.nomorTeleponPendampingMedis}
-                </Label>
-                <Input
-                  id="nomorTeleponPendampingMedis"
-                  type="number"
-                  min={1}
-                  value={formData.nomorTeleponPendampingMedis}
-                  onChange={(e) =>
-                    updateField('nomorTeleponPendampingMedis', e.target.value)
-                  }
-                  className="mt-1.5"
-                />
-              </div>
-
-              {/* Nomor Telepon Keluarga */}
-              <div>
-                <Label
-                  htmlFor="nomorTeleponKeluarga"
-                  className="text-sm text-gray-700"
-                >
-                  {t.nomorTeleponKeluarga}
-                </Label>
-                <Input
-                  id="nomorTeleponKeluarga"
-                  type="number"
-                  min={1}
-                  value={formData.nomorTeleponKeluarga}
-                  onChange={(e) =>
-                    updateField('nomorTeleponKeluarga', e.target.value)
-                  }
-                  className="mt-1.5"
-                />
-              </div>
-              {/* No Surat Izin Praktik */}
-              <div>
-                <Label htmlFor="nosuratIzin" className="text-sm text-gray-700">
-                  {t.nosuratIzin}
-                </Label>
-                <Input
-                  id="nosuratIzin"
-                  value={formData.nosuratIzin}
-                  onChange={(e) => updateField('nosuratIzin', e.target.value)}
-                  className="mt-1.5"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t.nosuratIzinExample}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5 */}
-          {currentStep === 5 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold">{t.uploadDocuments}</h2>
-
-              {/* Surat Izin Praktik */}
-              <div>
-                <Label className="mb-1 block">{t.practiceLicense}</Label>
-                <div className="flex items-center justify-between border rounded-md px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <Input
-                      required
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-
-                        // hanya upload
-                        handlePreview(file, 'noSuratPraktik');
-                      }}
-                    />
-                  </div>
-
-                  {/* ICON PREVIEW */}
-                  {formData.noSuratPraktik && (
-                    <button
-                      type="button"
-                      className="p-2 rounded hover:bg-gray-100"
-                      onClick={() => {
-                        // modal hanya muncul dari sini
-                        setPreviewFileUrl(formData.noSuratPraktik);
-                        setPreviewModal(true);
-                        openUploadedPreview(formData.noSuratPraktik);
-                      }}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Foto Kondisi Pasien */}
-              <div>
-                <Label className="mb-1 block">Foto Kondisi Pasien</Label>
-                <div className="flex items-center justify-between border rounded-md px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <Input
-                      required
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-
-                        // hanya upload
-                        handlePreview(file, 'fotoKondisiPasien');
-                      }}
-                    />
-                  </div>
-
-                  {/* ICON PREVIEW */}
-                  {formData.fotoKondisiPasien && (
-                    <button
-                      type="button"
-                      className="p-2 rounded hover:bg-gray-100"
-                      onClick={() => {
-                        // modal hanya muncul dari sini
-                        setPreviewFileUrl(formData.fotoKondisiPasien);
-                        setPreviewModal(true);
-                      }}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* KTP Pasien */}
-              <div>
-                <Label className="mb-1 block">KTP Pasien</Label>
-                <div className="flex items-center justify-between border rounded-md px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <Input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-
-                        // hanya upload
-                        handlePreview(file, 'ktpPasien');
-                      }}
-                    />
-                  </div>
-
-                  {/* ICON PREVIEW */}
-                  {formData.ktpPasien && (
-                    <button
-                      type="button"
-                      className="p-2 rounded hover:bg-gray-100"
-                      onClick={() => {
-                        // modal hanya muncul dari sini
-                        setPreviewFileUrl(formData.ktpPasien);
-                        setPreviewModal(true);
-                      }}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Manifest / Tiket Pesawat */}
-              <div>
-                <Label className="mb-1 block">{t.manifestTicket}</Label>
-                <div className="flex items-center justify-between border rounded-md px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <Input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-
-                        // hanya upload
-                        handlePreview(file, 'manifetPrivateJet');
-                      }}
-                    />
-                  </div>
-
-                  {/* ICON PREVIEW */}
-                  {formData.manifetPrivateJet && (
-                    <button
-                      type="button"
-                      className="p-2 rounded hover:bg-gray-100"
-                      onClick={() => {
-                        // modal hanya muncul dari sini
-                        setPreviewFileUrl(formData.manifetPrivateJet);
-                        setPreviewModal(true);
-                      }}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Rekam Medis Pasien */}
-              <div>
-                <Label className="mb-1 block">Rekam Medis Pasien</Label>
-                <div className="flex items-center justify-between border rounded-md px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <Input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-
-                        // hanya upload
-                        handlePreview(file, 'rekamMedisPasien');
-                      }}
-                    />
-                  </div>
-
-                  {/* ICON PREVIEW */}
-                  {formData.rekamMedisPasien && (
-                    <button
-                      type="button"
-                      className="p-2 rounded hover:bg-gray-100"
-                      onClick={() => {
-                        // modal hanya muncul dari sini
-                        setPreviewFileUrl(formData.rekamMedisPasien);
-                        setPreviewModal(true);
-                      }}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Surat Rujukan */}
-              <div>
-                <Label className="mb-1 block">{t.referralLetter}</Label>
-                <div className="flex items-center justify-between border rounded-md px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <Input
-                      ref={fileInputRef}
-                      required
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-
-                        // hanya upload
-                        handlePreview(file, 'suratRujukan');
-                      }}
-                    />
-                  </div>
-
-                  {/* ICON PREVIEW */}
-                  {formData.suratRujukan && (
-                    <button
-                      type="button"
-                      className="p-2 rounded hover:bg-gray-100"
-                      onClick={() => {
-                        // modal hanya muncul dari sini
-                        setPreviewFileUrl(formData.suratRujukan);
-                        setPreviewModal(true);
-                      }}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Dokumen Petugas Medis */}
-              <div>
-                <Label className="mb-1 block">{t.medicalOfficerDoc}</Label>
-                <div className="flex items-center justify-between border rounded-md px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <Input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="text-sm border-none p-0 file:mr-3 file:px-3 file:py-1 file:border file:rounded file:bg-gray-200 file:text-sm file:cursor-pointer hover:file:bg-gray-300"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-
-                        // hanya upload
-                        handlePreview(file, 'dokumentPetugasMedis');
-                      }}
-                    />
-                  </div>
-
-                  {/* ICON PREVIEW */}
-                  {formData.dokumentPetugasMedis && (
-                    <button
-                      type="button"
-                      className="p-2 rounded hover:bg-gray-100"
-                      onClick={() => {
-                        // modal hanya muncul dari sini
-                        setPreviewFileUrl(formData.dokumentPetugasMedis);
-                        setPreviewModal(true);
-                      }}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* NAVIGATION */}
-          <div className="flex justify-between mt-8">
-            <Button variant="outline" onClick={handleSaveDraft}>
+          {/* FOOTER ACTIONS */}
+          <div className="flex flex-col-reverse sm:flex-row justify-between items-center mt-12 pt-8 border-t border-slate-100 gap-4">
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              className="w-full sm:w-auto h-12 px-6 rounded-xl font-bold border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+            >
+              <Save className="size-4 mr-2 group-hover:scale-110 transition-transform" />
               {t.saveDraft}
             </Button>
 
-            <div className="flex gap-3">
+            <div className="flex w-full sm:w-auto gap-3">
               {currentStep > 1 && (
-                <Button variant="outline" onClick={prevStep}>
+                <Button
+                  variant="outline"
+                  onClick={prevStep}
+                  className="flex-1 sm:flex-none h-12 px-6 rounded-xl font-bold border-slate-200 text-slate-600 hover:bg-slate-50"
+                >
+                  <ArrowLeft className="size-4 mr-2" />
                   {t.previous}
                 </Button>
               )}
 
-              {currentStep < 5 ? (
-                <Button onClick={nextStep}>{t.next}</Button>
-              ) : (
-                <Button onClick={handleSubmit}>{t.submit}</Button>
-              )}
+              <Button
+                className="flex-1 sm:flex-none h-12 px-8 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.02]"
+                onClick={currentStep === 5 ? handleSubmit : nextStep}
+                disabled={loadingSubmit}
+              >
+                {loadingSubmit ? (
+                  t.loading
+                ) : currentStep === 5 ? (
+                  <>
+                    {t.submit}
+                    <Check className="size-4 ml-2" />
+                  </>
+                ) : (
+                  <>
+                    {t.next}
+                    <ArrowRight className="size-4 ml-2" />
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* MODAL BERHASIL SUBMIT */}
-
+      {/* MODAL PREVIEW */}
       <Dialog open={previewModal} onOpenChange={setPreviewModal}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-3xl rounded-[2rem] p-8 border-none shadow-2xl bg-white/95 backdrop-blur-md">
           <DialogHeader>
-            <DialogTitle>Preview Dokumen</DialogTitle>
-            <DialogDescription>
-              Apakah anda yakin dengan file ini?
-            </DialogDescription>
+            <DialogTitle className="text-2xl font-extrabold text-slate-900">
+              {t.previewDoc}
+            </DialogTitle>
+            <DialogDescription className="text-slate-500 font-medium">{t.confirmFile}</DialogDescription>
           </DialogHeader>
 
           {previewFileUrl && (
-            <div className="flex justify-center">
+            <div className="mt-4 flex justify-center p-4 bg-slate-50/80 rounded-2xl border border-slate-100 shadow-inner overflow-hidden">
               {isPdfPreview ? (
                 <iframe
                   src={previewFileUrl}
-                  className="w-full h-96 border rounded"
+                  className="w-full h-[60vh] rounded-xl border border-slate-200"
                 />
               ) : (
-                <img src={previewFileUrl} className="max-h-96 border rounded" />
+                <img
+                  src={previewFileUrl}
+                  className="max-h-[60vh] rounded-xl object-contain drop-shadow-md"
+                  alt="Preview"
+                />
               )}
             </div>
           )}
 
-          <div className="flex justify-end gap-3 mt-6">
-            <Button variant="outline" onClick={resetPreview}>
-              Upload Ulang
-            </Button>
-
-            <Button onClick={confirmUpload}>Simpan</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center text-green-600 text-xl font-bold">
-              Permohonan Berhasil
-            </DialogTitle>
-
-            <DialogDescription className="text-center">
-              Permohonan berhasil dikirim. Silakan menunggu proses verifikasi
-              dari admin.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex justify-center mt-6">
+          <div className="flex justify-end gap-3 mt-8">
             <Button
-              onClick={() => {
-                setShowSuccessModal(false);
-                resetForm();
-              }}
+              variant="outline"
+              onClick={resetPreview}
+              className="rounded-xl h-12 px-8 font-bold text-slate-600 hover:bg-slate-50 border-slate-200"
             >
-              Tutup
+              {t.uploadAgain}
             </Button>
+
+            {selectedFile && (
+              <Button
+                onClick={confirmUpload}
+                className="rounded-xl h-12 px-8 font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20"
+              >
+                {t.save}
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center text-red-600 text-xl font-bold">
-              Data Belum Lengkap
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              Berikut adalah field yang wajib diisi:
-            </DialogDescription>
-          </DialogHeader>
+      {/* MODAL SUCCESS */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md rounded-[2.5rem] p-10 text-center border-none shadow-2xl">
+          <div className="mx-auto w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-inner shadow-emerald-200/50">
+            <Check size={40} strokeWidth={3} />
+          </div>
 
-          <div className="space-y-2 mt-4">
+          <DialogTitle className="text-2xl font-extrabold mb-3 text-slate-900">
+            {t.successTitle}
+          </DialogTitle>
+
+          <DialogDescription className="mb-8 text-base text-slate-500 font-medium">
+            {t.successDesc}
+          </DialogDescription>
+
+          <Button
+            className="w-full h-14 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg shadow-lg"
+            onClick={resetForm}
+          >
+            {t.backDashboard}
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL ERROR */}
+      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+        <DialogContent className="max-w-md rounded-[2rem] p-8 border-none shadow-2xl text-center bg-white">
+          <div className="mx-auto w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mb-6 ring-8 ring-rose-50">
+            <AlertCircle size={32} strokeWidth={2.5} />
+          </div>
+
+          <DialogTitle className="text-2xl font-bold mb-2 text-slate-900">
+            {t.errorTitle}
+          </DialogTitle>
+
+          <DialogDescription className="text-slate-500 font-medium">{t.errorDesc}</DialogDescription>
+
+          <div className="space-y-2 mt-6 mb-8 text-left bg-rose-50/50 p-4 rounded-2xl border border-rose-100">
             {errorMessages.map((msg, idx) => (
-              <div
+              <p
                 key={idx}
-                className="bg-red-50 border border-red-100 p-3 rounded-lg flex items-start gap-2"
+                className="text-sm text-rose-700 font-semibold flex items-center gap-2"
               >
-                <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-1.5 shrink-0" />
-                <span className="text-red-700 text-sm font-medium">{msg}</span>
-              </div>
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
+                {msg}
+              </p>
             ))}
           </div>
 
-          <div className="flex justify-center mt-8">
-            <Button
-              className="bg-red-600 hover:bg-red-700 font-bold"
-              onClick={() => setShowErrorModal(false)}
-            >
-              Lengkapi Data
-            </Button>
-          </div>
+          <Button
+            className="w-full h-12 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-lg shadow-rose-600/20"
+            onClick={() => setShowErrorModal(false)}
+          >
+            {t.completeData}
+          </Button>
         </DialogContent>
       </Dialog>
     </div>
