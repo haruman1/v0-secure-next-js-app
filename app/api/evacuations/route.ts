@@ -151,6 +151,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validasi Waktu: Minimal 1 hari (24 jam) sebelum keberangkatan
+    const travelDateTimeStr = `${tanggalPerjalanan}T${jamPerjalanan || '00:00'}:00`;
+    const travelDateTime = new Date(travelDateTimeStr);
+    const now = new Date();
+
+    if (travelDateTime.getTime() - now.getTime() < 24 * 60 * 60 * 1000) {
+      return NextResponse.json(
+        {
+          error:
+            'Permohonan tidak boleh berdekatan dengan waktu keberangkatan. Penginputan maksimal 1 hari (24 jam) sebelum keberangkatan.',
+        },
+        { status: 400 },
+      );
+    }
+
     /* =========================
        FILE PATH
     ========================= */

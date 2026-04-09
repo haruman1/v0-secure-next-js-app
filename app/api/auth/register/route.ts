@@ -11,35 +11,33 @@ export async function POST(request: NextRequest) {
     if (!email || !password || !fullName || !role) {
       return NextResponse.json(
         { error: 'Missing required fields' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (password.length < 8) {
       return NextResponse.json(
         { error: 'Password must be at least 8 characters' },
-        { status: 400 }
+        { status: 400 },
       );
     }
-
+    if (role == 'admin' || role == 'superadmin' || role === 'admin') {
+      return NextResponse.json({ error: 'Role tidak valid' }, { status: 400 });
+    }
     // Validate role
-    if (role !== 'admin' && role !== 'user') {
-      return NextResponse.json(
-        { error: 'Role tidak valid' },
-        { status: 400 }
-      );
+    if (role !== 'user') {
+      return NextResponse.json({ error: 'Role tidak valid' }, { status: 400 });
     }
 
     // Check if email already exists
-    const existingUsers = await query(
-      'SELECT id FROM users WHERE email = ?',
-      [email]
-    );
+    const existingUsers = await query('SELECT id FROM users WHERE email = ?', [
+      email,
+    ]);
 
     if (Array.isArray(existingUsers) && existingUsers.length > 0) {
       return NextResponse.json(
         { error: 'Email already registered' },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -52,7 +50,7 @@ export async function POST(request: NextRequest) {
       `INSERT INTO users 
        (id, email, password_hash, full_name, phone, role, is_active) 
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [userId, email, passwordHash, fullName, phone || null, role, true]
+      [userId, email, passwordHash, fullName, phone || null, role, true],
     );
 
     // Log audit event
@@ -66,7 +64,7 @@ export async function POST(request: NextRequest) {
       userId,
       { email, role },
       ipAddress,
-      userAgent
+      userAgent,
     );
 
     // Create session
@@ -83,14 +81,14 @@ export async function POST(request: NextRequest) {
         },
         sessionId,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error('Registration error:', error);
 
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

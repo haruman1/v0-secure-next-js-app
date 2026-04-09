@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/auth-context';
-import { useLanguage } from '@/app/context/language-context'; 
+import { useLanguage } from '@/app/context/language-context';
+import { useTour } from '@/app/hooks/useTour';
 import Swal from 'sweetalert2';
 import {
   Card,
@@ -16,6 +17,20 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Eye,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Plane,
+  FileText,
+  ShieldCheck,
+  Activity,
+  UserCircle2,
+  FileCheck,
+  Plus,
+} from 'lucide-react';
 
 import {
   Dialog,
@@ -26,118 +41,7 @@ import {
 } from '@/components/ui/dialog';
 
 import Image from 'next/image';
-
-/* ================= TRANSLATIONS ================= */
-const translations = {
-  id: {
-    title: 'Verifikasi Permohonan',
-    appData: 'Data Permohonan',
-    dataCount: 'data',
-    loading: 'Loading...',
-    noData: 'Tidak ada data',
-    waiting: 'Menunggu',
-    revision: 'Revisi',
-    valid: 'Valid',
-    canceled: 'Batal',
-    detail: 'Detail',
-    approve: 'Setujui',
-    detailTitle: 'Detail Permohonan',
-    fullInfo: 'Informasi lengkap',
-    flightData: 'Data Penerbangan & Pemohon',
-    patientName: 'Nama Pasien',
-    serviceType: 'Jenis Layanan',
-    planeType: 'Jenis Pesawat',
-    flightNo: 'No Penerbangan',
-    airline: 'Maskapai',
-    groundhandling: 'Groundhandling',
-    medicalCondition: 'Kondisi Medis',
-    bloodPressure: 'Tekanan Darah',
-    pulse: 'Nadi',
-    oxygenSaturation: 'Saturasi Oksigen',
-    consciousness: 'Tingkat Kesadaran',
-    uploadDocs: 'Dokumen Upload',
-    sip: 'Surat Izin Praktik',
-    referral: 'Surat Rujukan',
-    manifest: 'Manifest/Tiket',
-    conditionPhoto: 'Foto Kondisi',
-    ktp: 'KTP Pasien',
-    medDocs: 'Dokumen Medis',
-    created: 'Dibuat',
-    updated: 'Update',
-    lastRevNote: 'Catatan Revisi Terakhir:',
-    defaultRevMsg: 'Gunakan catatan di bawah untuk memperbaiki data:',
-    genRevNote: 'Catatan Umum Revisi',
-    approveAll: 'Setujui Seluruhnya',
-    sendRev: 'Kirim Ke Revisi',
-    sending: 'Mengirim...',
-    revPlaceholder: 'Contoh: Seluruh dokumen kurang jelas, mohon upload ulang...',
-    success: 'Berhasil',
-    error: 'Error',
-    info: 'Info',
-    appApproved: 'Permohonan disetujui',
-    fetchFailed: 'Gagal mengambil data',
-    detailFailed: 'Gagal mengambil detail',
-    approveFailed: 'Gagal approve',
-    needRevReason: 'Berikan setidaknya satu alasan revisi',
-    returnedForRev: 'Dikembalikan untuk revisi',
-    submitRevFailed: 'Gagal submit revisi',
-    revReason: 'Alasan revisi...',
-  },
-  en: {
-    title: 'Application Verification',
-    appData: 'Application Data',
-    dataCount: 'records',
-    loading: 'Loading...',
-    noData: 'No data available',
-    waiting: 'Pending',
-    revision: 'Revision',
-    valid: 'Valid',
-    canceled: 'Canceled',
-    detail: 'Detail',
-    approve: 'Approve',
-    detailTitle: 'Application Detail',
-    fullInfo: 'Complete information',
-    flightData: 'Flight & Applicant Data',
-    patientName: 'Patient Name',
-    serviceType: 'Service Type',
-    planeType: 'Aircraft Type',
-    flightNo: 'Flight Number',
-    airline: 'Airline',
-    groundhandling: 'Groundhandling',
-    medicalCondition: 'Medical Condition',
-    bloodPressure: 'Blood Pressure',
-    pulse: 'Pulse',
-    oxygenSaturation: 'Oxygen Saturation',
-    consciousness: 'Level of Consciousness',
-    uploadDocs: 'Uploaded Documents',
-    sip: 'Practice License',
-    referral: 'Referral Letter',
-    manifest: 'Manifest/Ticket',
-    conditionPhoto: 'Condition Photo',
-    ktp: 'Patient ID Card',
-    medDocs: 'Medical Documents',
-    created: 'Created',
-    updated: 'Updated',
-    lastRevNote: 'Last Revision Notes:',
-    defaultRevMsg: 'Use the notes below to correct the data:',
-    genRevNote: 'General Revision Note',
-    approveAll: 'Approve All',
-    sendRev: 'Send for Revision',
-    sending: 'Sending...',
-    revPlaceholder: 'Example: All documents are unclear, please re-upload...',
-    success: 'Success',
-    error: 'Error',
-    info: 'Info',
-    appApproved: 'Application approved',
-    fetchFailed: 'Failed to fetch data',
-    detailFailed: 'Failed to fetch details',
-    approveFailed: 'Failed to approve',
-    needRevReason: 'Provide at least one revision reason',
-    returnedForRev: 'Returned for revision',
-    submitRevFailed: 'Failed to submit revision',
-    revReason: 'Revision reason...',
-  },
-};
+import { cn } from '@/lib/utils';
 
 /* ================= TYPES ================= */
 
@@ -226,7 +130,9 @@ function normalizeStatus(status: unknown): AppItem['status'] {
 function mapApplication(item: RawAppItem): AppItem {
   return {
     id: String(item.id ?? ''),
-    namaPasien: (item.namaPasien || item.nama_pasien || item.patient_name) as string,
+    namaPasien: (item.namaPasien ||
+      item.nama_pasien ||
+      item.patient_name) as string,
     jenisLayanan: item.jenisLayanan as string,
     jenisPesawat: item.jenisPesawat as string,
     namaGroundhandling: item.namaGroundhandling as string,
@@ -236,7 +142,8 @@ function mapApplication(item: RawAppItem): AppItem {
     namaMaskapai: item.namaMaskapai as string,
     noPenerbangan: (item.noPenerbangan || item.no_penerbangan) as string,
     noKursi: item.noKursi as string,
-    tanggalPerjalanan: (item.tanggalPerjalanan || item.tanggal_perjalanan) as string,
+    tanggalPerjalanan: (item.tanggalPerjalanan ||
+      item.tanggal_perjalanan) as string,
     jamPerjalanan: item.jamPerjalanan as string,
     jenisKelamin: item.jenisKelamin as string,
     tanggalLahir: item.tanggalLahir as string,
@@ -288,10 +195,10 @@ function formatDateTime(date?: string) {
 export default function VerifikasiPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
-  
+
   // setLanguage dihapus agar tidak menjadi unused variable
-  const { language } = useLanguage(); 
-  const t = translations[language as keyof typeof translations] || translations.id;
+  const { language, t } = useLanguage();
+  useTour(user?.role === 'admin');
 
   const [applications, setApplications] = useState<AppItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -322,7 +229,7 @@ export default function VerifikasiPage() {
       const result = await res.json();
       setApplications((result.data || []).map(mapApplication));
     } catch {
-      Swal.fire(t.error, t.fetchFailed, 'error');
+      Swal.fire(t('common.error'), t('pages.verifikasi.fetchFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -347,7 +254,7 @@ export default function VerifikasiPage() {
 
       setShowDetail(true);
     } catch {
-      Swal.fire(t.error, t.detailFailed, 'error');
+      Swal.fire(t('common.error'), t('pages.verifikasi.detailFailed'), 'error');
     }
   }
 
@@ -363,14 +270,22 @@ export default function VerifikasiPage() {
 
       if (!res.ok) throw new Error();
 
-      Swal.fire(t.success, t.appApproved, 'success');
+      Swal.fire(
+        t('common.success'),
+        t('pages.verifikasi.appApproved'),
+        'success',
+      );
 
       setApplications((prev) => prev.filter((a) => a.id !== id));
       setShowDetail(false);
 
       if (redirect) router.push('/dashboard/penerbitan');
     } catch {
-      Swal.fire(t.error, t.approveFailed, 'error');
+      Swal.fire(
+        t('common.error'),
+        t('pages.verifikasi.approveFailed'),
+        'error',
+      );
     } finally {
       setLoadingAction(false);
     }
@@ -379,9 +294,11 @@ export default function VerifikasiPage() {
   async function submitRevisi() {
     if (!selectedApp) return;
 
-    const hasAnyFieldNote = Object.values(fieldNotes).some((v) => v.trim() !== '');
+    const hasAnyFieldNote = Object.values(fieldNotes).some(
+      (v) => v.trim() !== '',
+    );
     if (!revisiNote.trim() && !hasAnyFieldNote) {
-      Swal.fire(t.info, t.needRevReason, 'info');
+      Swal.fire(t('common.info'), t('pages.verifikasi.needRevReason'), 'info');
       return;
     }
 
@@ -403,27 +320,51 @@ export default function VerifikasiPage() {
 
       if (!res.ok) throw new Error();
 
-      Swal.fire(t.success, t.returnedForRev, 'success');
+      Swal.fire(
+        t('common.success'),
+        t('pages.verifikasi.returnedForRev'),
+        'success',
+      );
 
       setApplications((prev) => prev.filter((a) => a.id !== selectedApp.id));
       setShowDetail(false);
       setRevisiNote('');
       setFieldNotes({});
     } catch {
-      Swal.fire(t.error, t.submitRevFailed, 'error');
+      Swal.fire(
+        t('common.error'),
+        t('pages.verifikasi.submitRevFailed'),
+        'error',
+      );
     } finally {
       setSubmittingRevisi(false);
     }
   }
 
   function getStatusBadge(status: AppItem['status']) {
-    if (status === 'pending') 
-      return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white border-transparent">{t.waiting}</Badge>;
+    if (status === 'pending')
+      return (
+        <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white border-transparent">
+          {t('evacuation.pending')}
+        </Badge>
+      );
     if (status === 'reviewed')
-      return <Badge className="bg-red-600 hover:bg-red-700 text-white border-transparent">{t.revision}</Badge>;
+      return (
+        <Badge className="bg-red-600 hover:bg-red-700 text-white border-transparent">
+          {t('evacuation.reviewed')}
+        </Badge>
+      );
     if (status === 'valid')
-      return <Badge className="bg-green-600 hover:bg-green-700 text-white border-transparent">{t.valid}</Badge>;
-    return <Badge className="bg-gray-500 hover:bg-gray-600 text-white border-transparent">{t.canceled}</Badge>;
+      return (
+        <Badge className="bg-green-600 hover:bg-green-700 text-white border-transparent">
+          {t('evacuation.valid')}
+        </Badge>
+      );
+    return (
+      <Badge className="bg-gray-500 hover:bg-gray-600 text-white border-transparent">
+        {t('evacuation.canceled')}
+      </Badge>
+    );
   }
 
   if (authLoading) return null;
@@ -431,288 +372,478 @@ export default function VerifikasiPage() {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{t.title}</h1>
+    <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto bg-slate-50/50 min-h-screen text-slate-800">
+      {/* HEADER SECTION */}
+      <div>
+        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+          {t('pages.verifikasi.title')}
+        </h1>
+        <p className="text-slate-500 text-base md:text-lg mt-2 max-w-2xl">
+          {t('pages.verifikasi.fullInfo')}
+        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t.appData}</CardTitle>
-          <CardDescription>{applications.length} {t.dataCount}</CardDescription>
+      <div
+        id="tour-verif-stats"
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+      >
+        <Card className="border-slate-200 shadow-sm rounded-2xl bg-white overflow-hidden group hover:shadow-md transition-all">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="bg-blue-50 p-3 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <Activity className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                {t('pages.verifikasi.summary')}
+              </p>
+              <h3 className="text-2xl font-bold text-slate-900">
+                {applications.length} {t('pages.verifikasi.appData')}
+              </h3>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card
+        id="tour-verif-table"
+        className="border-slate-200 shadow-lg rounded-2xl overflow-hidden bg-white"
+      >
+        <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-6 pt-8 px-6 md:px-10">
+          <div className="flex items-center gap-3">
+            <div className="bg-sky-100 p-2.5 rounded-xl text-sky-600">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <CardTitle className="text-xl md:text-2xl font-bold text-slate-900">
+                {t('pages.verifikasi.appData')}
+              </CardTitle>
+              <CardDescription className="text-base text-slate-500 mt-1 font-medium">
+                {applications.length} {t('pages.verifikasi.title')}
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="p-6 md:p-10">
           {loading ? (
-            <div>{t.loading}</div>
+            <div className="py-20 flex flex-col items-center justify-center gap-4 text-slate-500 text-lg">
+              <div className="w-10 h-10 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
+              {t('common.loading')}
+            </div>
           ) : applications.length === 0 ? (
-            <div>{t.noData}</div>
+            <div className="py-20 flex flex-col items-center text-slate-500 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+              <CheckCircle2 className="w-16 h-16 text-emerald-400 mb-4" />
+              <p className="text-lg font-medium">{t('messages.noData')}</p>
+            </div>
           ) : (
-            applications.map((app) => (
-              <div
-                key={app.id}
-                className="flex justify-between border p-4 mb-2 rounded"
-              >
-                <div>
-                  <div className="font-semibold">{app.namaPasien}</div>
-                  <div className="text-sm text-gray-500">
-                    {app.noPenerbangan}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {applications.map((app) => (
+                <div
+                  key={app.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-bold text-slate-900 text-xl leading-tight">
+                        {app.namaPasien || '-'}
+                      </h3>
+                      {getStatusBadge(app.status)}
+                    </div>
+
+                    <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 px-3 py-1 rounded-lg">
+                      <span className="text-sm font-mono font-semibold">
+                        ID: {app.id}
+                      </span>
+                    </div>
+
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
+                      <div className="flex items-center gap-2 text-slate-700 font-medium font-sans">
+                        <Plane className="w-4 h-4 text-slate-400" />
+                        {app.noPenerbangan || app.namaMaskapai || '-'}
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-500 text-sm">
+                        <Clock className="w-4 h-4" />
+                        {app.tanggalPerjalanan || '-'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-1 gap-3">
+                    <Button
+                      id="tour-verif-action"
+                      variant="outline"
+                      className="w-full h-11 border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl"
+                      onClick={() => openDetail(app.id)}
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      {t('pages.verifikasi.detail')}
+                    </Button>
+
+                    {isAdmin && (
+                      <div
+                        id="tour-verif-actions"
+                        className="grid grid-cols-2 gap-2"
+                      >
+                        <Button
+                          className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleApprove(app.id);
+                          }}
+                        >
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          {t('pages.verifikasi.approve')}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          className="h-11 font-semibold rounded-xl"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDetail(app.id);
+                          }}
+                        >
+                          <AlertCircle className="w-4 h-4 mr-2" />
+                          {t('common.revision')}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                <div className="flex gap-2 items-center">
-                  {getStatusBadge(app.status)}
-                  
-                  <Button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white" 
-                    onClick={() => openDetail(app.id)}
-                  >
-                    {t.detail}
-                  </Button>
-
-                  {user?.role === 'admin' && (
-                    <>
-                      <Button 
-                        className="bg-green-600 hover:bg-green-700 text-white" 
-                        onClick={() => handleApprove(app.id)}
-                      >
-                        {t.approve}
-                      </Button>
-                      <Button 
-                        className="bg-red-600 hover:bg-red-700 text-white" 
-                        onClick={() => openDetail(app.id)}
-                      >
-                        {t.revision}
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
 
       <Dialog open={showDetail} onOpenChange={setShowDetail}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{t.detailTitle}</DialogTitle>
-            <DialogDescription>{t.fullInfo}</DialogDescription>
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-2xl border-none shadow-2xl">
+          <DialogHeader className="p-6 md:p-8 bg-slate-900 text-white shrink-0">
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <ShieldCheck className="w-6 h-6 text-sky-400" />{' '}
+              {t('pages.verifikasi.detailTitle')}
+            </DialogTitle>
+            <DialogDescription className="text-base text-slate-400 mt-1">
+              {t('pages.verifikasi.fullInfo')}
+            </DialogDescription>
           </DialogHeader>
 
           {selectedApp && (
-            <div className="space-y-6 pt-4 max-h-[70vh] overflow-y-auto pr-2 text-sm">
-              <section>
-                <h3 className="font-bold border-b pb-1 mb-2 text-blue-700">
-                  {t.flightData}
+            <div className="p-6 md:p-8 overflow-y-auto flex-1 bg-slate-50/50 space-y-8">
+              {/* SECTION: DATA PENERBANGAN */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <Plane className="w-5 h-5 text-sky-600" />{' '}
+                  {t('pages.verifikasi.flightData')}
                 </h3>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <DetailField
-                    label={t.patientName}
+                    label={t('evacuation.patientName')}
                     value={selectedApp.namaPasien}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, namaPasien: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, namaPasien: val }))
+                    }
                     currentNote={fieldNotes.namaPasien}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DetailField
-                    label={t.serviceType}
+                    label={t('evacuation.serviceType')}
                     value={selectedApp.jenisLayanan}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, jenisLayanan: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, jenisLayanan: val }))
+                    }
                     currentNote={fieldNotes.jenisLayanan}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DetailField
-                    label={t.planeType}
+                    label={t('evacuation.aircraftType')}
                     value={selectedApp.jenisPesawat}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, jenisPesawat: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, jenisPesawat: val }))
+                    }
                     currentNote={fieldNotes.jenisPesawat}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DetailField
-                    label={t.flightNo}
+                    label={t('evacuation.flightNumber')}
                     value={selectedApp.noPenerbangan}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, noPenerbangan: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, noPenerbangan: val }))
+                    }
                     currentNote={fieldNotes.noPenerbangan}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DetailField
-                    label={t.airline}
+                    label={t('evacuation.airlineName')}
                     value={selectedApp.namaMaskapai}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, namaMaskapai: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, namaMaskapai: val }))
+                    }
                     currentNote={fieldNotes.namaMaskapai}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DetailField
-                    label={t.groundhandling}
+                    label={t('evacuation.groundHandlingName')}
                     value={selectedApp.namaGroundhandling}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, namaGroundhandling: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({
+                        ...prev,
+                        namaGroundhandling: val,
+                      }))
+                    }
                     currentNote={fieldNotes.namaGroundhandling}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                 </div>
-              </section>
+              </div>
 
-              <section>
-                <h3 className="font-bold border-b pb-1 mb-2 text-blue-700">
-                  {t.medicalCondition}
+              {/* SECTION: KONDISI MEDIS */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <Activity className="w-5 h-5 text-emerald-600" />{' '}
+                  {t('pages.verifikasi.medicalCondition')}
                 </h3>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <DetailField
-                    label={t.bloodPressure}
+                    label={t('evacuation.bloodPressure')}
                     value={selectedApp.tekananDarah}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, tekananDarah: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, tekananDarah: val }))
+                    }
                     currentNote={fieldNotes.tekananDarah}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DetailField
-                    label={t.pulse}
+                    label={t('evacuation.heartRate')}
                     value={selectedApp.nadi}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, nadi: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, nadi: val }))
+                    }
                     currentNote={fieldNotes.nadi}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DetailField
-                    label={t.oxygenSaturation}
+                    label={t('evacuation.oxygenSaturation')}
                     value={selectedApp.saturasiOksigen}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, saturasiOksigen: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({
+                        ...prev,
+                        saturasiOksigen: val,
+                      }))
+                    }
                     currentNote={fieldNotes.saturasiOksigen}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DetailField
-                    label={t.consciousness}
+                    label={t('evacuation.consciousnessLevel')}
                     value={selectedApp.tingkatKesadaran}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, tingkatKesadaran: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({
+                        ...prev,
+                        tingkatKesadaran: val,
+                      }))
+                    }
                     currentNote={fieldNotes.tingkatKesadaran}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                 </div>
-              </section>
+              </div>
 
-              <section>
-                <h3 className="font-bold border-b pb-1 mb-2 text-blue-700">
-                  {t.uploadDocs}
+              {/* SECTION: DOKUMEN LANJUTAN */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <FileText className="w-5 h-5 text-purple-600" />{' '}
+                  {t('pages.verifikasi.uploadDocs')}
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <DocField
-                    label={t.sip}
+                    label={t('evacuation.practiceNumber')}
                     src={selectedApp.noSuratPraktik}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, noSuratPraktik: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({
+                        ...prev,
+                        noSuratPraktik: val,
+                      }))
+                    }
                     currentNote={fieldNotes.noSuratPraktik}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DocField
-                    label={t.referral}
+                    label={t('evacuation.referralLetter')}
                     src={selectedApp.suratRujukan}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, suratRujukan: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, suratRujukan: val }))
+                    }
                     currentNote={fieldNotes.suratRujukan}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DocField
-                    label={t.manifest}
+                    label={t('evacuation.manifestJet')}
                     src={selectedApp.manifetPrivateJet}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, manifetPrivateJet: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({
+                        ...prev,
+                        manifetPrivateJet: val,
+                      }))
+                    }
                     currentNote={fieldNotes.manifetPrivateJet}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DocField
-                    label={t.conditionPhoto}
+                    label={t('evacuation.patientPhoto')}
                     src={selectedApp.fotoKondisiPasien}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, fotoKondisiPasien: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({
+                        ...prev,
+                        fotoKondisiPasien: val,
+                      }))
+                    }
                     currentNote={fieldNotes.fotoKondisiPasien}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DocField
-                    label={t.ktp}
+                    label={t('evacuation.patientID')}
                     src={selectedApp.ktpPasien}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, ktpPasien: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, ktpPasien: val }))
+                    }
                     currentNote={fieldNotes.ktpPasien}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                   <DocField
-                    label={t.medDocs}
+                    label={t('evacuation.medicalStaffDoc')}
                     src={selectedApp.dokumentPetugasMedis}
-                    onNoteChange={(val) => setFieldNotes((prev) => ({ ...prev, dokumentPetugasMedis: val }))}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({
+                        ...prev,
+                        dokumentPetugasMedis: val,
+                      }))
+                    }
                     currentNote={fieldNotes.dokumentPetugasMedis}
                     isAdmin={isAdmin}
-                    placeholder={t.revReason}
+                    placeholder={t('pages.verifikasi.revPlaceholder')}
                   />
                 </div>
-              </section>
+              </div>
 
-              <div className="pt-4 border-t space-y-4">
-                <div>
-                  <p>
-                    <b>{t.created}:</b> {formatDateTime(selectedApp.created_at)}
-                  </p>
-                  <p>
-                    <b>{t.updated}:</b> {formatDateTime(selectedApp.updated_at)}
-                  </p>
+              {/* TIMESTAMPS & REVISION HISTORY */}
+              <div className="pt-4 space-y-4">
+                <div className="flex flex-wrap gap-6 text-slate-500 font-medium bg-slate-100/50 p-4 rounded-xl border border-slate-200">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    <span>
+                      {t('pages.verifikasi.created')}:{' '}
+                      {formatDateTime(selectedApp.created_at)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4" />
+                    <span>
+                      {t('pages.verifikasi.updated')}:{' '}
+                      {formatDateTime(selectedApp.updated_at)}
+                    </span>
+                  </div>
                 </div>
 
                 {selectedApp.catatanRevisi && (
-                  <div className="p-3 bg-red-50 rounded border border-red-200 shadow-sm">
-                    <p className="font-bold text-xs text-red-700 uppercase mb-2 flex items-center gap-1">
-                      <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
-                      {t.lastRevNote}
-                    </p>
-                    <div className="space-y-2 text-red-900">
-                      <p className="font-semibold underline">
-                        {getGeneralNote(selectedApp.catatanRevisi) || t.defaultRevMsg}
-                      </p>
-                      {Object.keys(parseCatatanRevisi(selectedApp.catatanRevisi))
-                        .filter((k) => k !== '_general' && parseCatatanRevisi(selectedApp.catatanRevisi)[k])
+                  <div className="p-6 bg-red-50 rounded-2xl border-2 border-red-100 shadow-sm space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div className="bg-red-100 p-2 rounded-lg text-red-600">
+                        <AlertCircle className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-red-800 uppercase tracking-widest mb-1">
+                          {t('pages.verifikasi.lastRevNote')}
+                        </p>
+                        <p className="text-red-900 font-medium text-lg italic bg-white/50 p-3 rounded-lg border border-red-200">
+                          {getGeneralNote(selectedApp.catatanRevisi) ||
+                            t('pages.revisi.desc')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {Object.keys(
+                        parseCatatanRevisi(selectedApp.catatanRevisi),
+                      )
+                        .filter(
+                          (k) =>
+                            k !== '_general' &&
+                            parseCatatanRevisi(selectedApp.catatanRevisi)[k],
+                        )
                         .map((key) => (
-                          <div key={key} className="flex gap-1.5 items-start text-xs">
-                            <span className="bg-red-200 px-1 rounded font-bold uppercase shrink-0">
-                              {key}:
+                          <div
+                            key={key}
+                            className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-red-100 text-[13px]"
+                          >
+                            <span className="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-md uppercase text-[10px]">
+                              {key}
                             </span>
-                            <span>{parseCatatanRevisi(selectedApp.catatanRevisi)[key]}</span>
+                            <span className="text-red-900 font-medium">
+                              {
+                                parseCatatanRevisi(selectedApp.catatanRevisi)[
+                                  key
+                                ]
+                              }
+                            </span>
                           </div>
                         ))}
                     </div>
                   </div>
                 )}
 
-                {user?.role === 'admin' && (
-                  <div className="space-y-3 bg-red-50 p-4 rounded-lg border border-red-100">
-                    <Label className="font-bold text-red-700">
-                      {t.genRevNote}
-                    </Label>
-                    <textarea
-                      className="w-full border p-2 rounded h-24 text-sm bg-white"
-                      placeholder={t.revPlaceholder}
-                      value={revisiNote}
-                      onChange={(e) => setRevisiNote(e.target.value)}
-                    />
-                    
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        className="bg-green-600 hover:bg-green-700 text-white" 
-                        onClick={() => handleApprove(selectedApp.id)}
+                {/* ADMIN ACTIONS SECTION */}
+                {isAdmin && (
+                  <div className="space-y-6 bg-blue-50/50 p-8 rounded-3xl border border-blue-100 shadow-inner">
+                    <div className="space-y-3">
+                      <Label className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                        {t('pages.verifikasi.genRevNote')}
+                      </Label>
+                      <Textarea
+                        className="w-full border-slate-200 p-4 rounded-xl h-32 text-base bg-white focus:ring-2 focus:ring-blue-200"
+                        placeholder={t('pages.verifikasi.revPlaceholder')}
+                        value={revisiNote}
+                        onChange={(e) => setRevisiNote(e.target.value)}
+                      />
+                    </div>
+
+                    <div
+                      id="tour-verif-actions"
+                      className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-blue-100"
+                    >
+                      <Button
+                        variant="destructive"
+                        className="h-12 px-8 rounded-xl font-bold shadow-lg shadow-red-200"
+                        onClick={submitRevisi}
+                        disabled={submittingRevisi}
                       >
-                        {t.approveAll}
+                        {submittingRevisi
+                          ? t('common.loading')
+                          : t('pages.verifikasi.sendRev')}
                       </Button>
                       <Button
-                        className="bg-red-600 hover:bg-red-700 text-white"
-                        disabled={submittingRevisi}
-                        onClick={submitRevisi}
+                        className="h-12 px-10 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200"
+                        onClick={() => handleApprove(selectedApp.id)}
+                        disabled={loadingAction}
                       >
-                        {submittingRevisi ? t.sending : t.sendRev}
+                        {loadingAction
+                          ? t('common.loading')
+                          : t('pages.verifikasi.approveAll')}
                       </Button>
                     </div>
                   </div>
@@ -732,7 +863,7 @@ function DetailField({
   onNoteChange,
   currentNote,
   isAdmin = false,
-  placeholder = "Alasan revisi..."
+  placeholder = 'Alasan revisi...',
 }: {
   label: string;
   value: string | null;
@@ -744,40 +875,51 @@ function DetailField({
   const [showInput, setShowInput] = useState(false);
 
   return (
-    <div className="border rounded-md p-2 bg-gray-50 relative group">
+    <div className="border border-slate-200 rounded-xl p-3 bg-white shadow-sm hover:border-sky-300 transition-colors relative group">
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+          <p className="sm:text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest mb-0.5">
             {label}
           </p>
-          <p className="font-medium text-gray-900">{value || '-'}</p>
+          <p className="sm:text-sm text-xs font-semibold text-slate-900">
+            {value || '-'}
+          </p>
         </div>
         {isAdmin && (
           <Button
-            variant={currentNote ? 'destructive' : 'outline'}
+            variant={currentNote ? 'destructive' : 'ghost'}
             size="icon"
-            className="h-6 w-6"
+            className={cn(
+              'h-7 w-7 rounded-lg transition-all',
+              currentNote
+                ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                : 'text-slate-400 hover:bg-slate-100 hover:text-sky-600',
+            )}
             onClick={() => setShowInput(!showInput)}
           >
-            {currentNote ? '!' : '+'}
+            {currentNote ? (
+              <AlertCircle className="w-4 h-4" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
           </Button>
         )}
       </div>
-      {(showInput || currentNote) && (
-        isAdmin ? (
+      {(showInput || currentNote) &&
+        (isAdmin ? (
           <input
-            className="mt-2 w-full text-xs border border-red-200 p-1 rounded bg-white text-red-600 placeholder:text-red-300"
+            className="mt-2 w-full text-xs border border-red-100 p-2 rounded-lg bg-red-50/30 text-red-700 placeholder:text-red-300 focus:outline-none focus:ring-1 focus:ring-red-200"
             placeholder={placeholder}
             value={currentNote || ''}
             onChange={(e) => onNoteChange(e.target.value)}
             autoFocus={showInput}
           />
         ) : (
-          <p className="mt-1 text-[11px] text-red-600 font-bold bg-red-50 border border-red-100 p-1 rounded">
+          <p className="mt-2 text-[11px] text-red-600 font-bold bg-red-50/50 border border-red-100 p-2 rounded-lg flex items-center gap-1.5">
+            <AlertCircle className="w-3 h-3" />
             REVISI: {currentNote}
           </p>
-        )
-      )}
+        ))}
     </div>
   );
 }
@@ -788,7 +930,7 @@ function DocField({
   onNoteChange,
   currentNote,
   isAdmin = false,
-  placeholder = "Alasan revisi..."
+  placeholder = 'Alasan revisi...',
 }: {
   label: string;
   src: string | null | undefined;
@@ -800,44 +942,56 @@ function DocField({
   const [showInput, setShowInput] = useState(false);
 
   return (
-    <div className="border rounded-lg p-2 bg-gray-50">
-      <div className="flex justify-between items-center mb-2">
-        <p className="text-[10px] font-bold text-gray-400 uppercase">{label}</p>
+    <div className="border border-slate-200 rounded-2xl p-4 bg-white shadow-sm hover:border-sky-300 transition-all flex flex-col items-center">
+      <div className="flex justify-between items-center w-full mb-3">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          {label}
+        </p>
         {isAdmin && (
           <Button
-            variant={currentNote ? 'destructive' : 'outline'}
+            variant={currentNote ? 'destructive' : 'ghost'}
             size="icon"
-            className="h-6 w-6"
+            className={cn(
+              'h-7 w-7 rounded-lg transition-all',
+              currentNote
+                ? 'bg-red-50 text-red-600'
+                : 'text-slate-400 hover:bg-slate-100 hover:text-sky-600',
+            )}
             onClick={() => setShowInput(!showInput)}
           >
-            {currentNote ? '!' : '+'}
+            {currentNote ? (
+              <AlertCircle className="w-4 h-4" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
           </Button>
         )}
       </div>
-      <div className="flex flex-col items-center gap-2">
+      <div className="relative group w-full aspect-square max-w-[160px] cursor-pointer overflow-hidden rounded-xl border border-slate-100">
         <Image
           src={safeImage(src)}
           alt={label}
-          width={120}
-          height={120}
-          className="rounded border bg-white object-cover shadow-sm"
+          fill
+          className="object-cover group-hover:scale-110 transition-transform duration-500"
         />
+        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors" />
       </div>
-      {(showInput || currentNote) && (
-        isAdmin ? (
+
+      {(showInput || currentNote) &&
+        (isAdmin ? (
           <input
-            className="mt-2 w-full text-xs border border-red-200 p-1 rounded bg-white text-red-600"
+            className="mt-3 w-full text-xs border border-red-100 p-2 rounded-lg bg-red-50/30 text-red-700 placeholder:text-red-300 focus:outline-none focus:ring-1 focus:ring-red-200"
             placeholder={placeholder}
             value={currentNote || ''}
             onChange={(e) => onNoteChange(e.target.value)}
             autoFocus={showInput}
           />
         ) : (
-          <p className="mt-2 text-[11px] text-red-600 font-bold bg-red-50 border border-red-100 p-1 rounded text-center">
+          <p className="mt-3 w-full text-[11px] text-red-600 font-bold bg-red-50/50 border border-red-100 p-2 rounded-lg flex items-center gap-1.5 justify-center">
+            <AlertCircle className="w-3 h-3" />
             REVISI: {currentNote}
           </p>
-        )
-      )}
+        ))}
     </div>
   );
 }

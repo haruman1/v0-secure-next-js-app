@@ -9,7 +9,7 @@ import {
   AlertCircle,
   ArrowRight,
   ArrowLeft,
-  Save
+  Save,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,9 +25,12 @@ import {
 } from '@/components/ui/select';
 
 import { useLanguage } from '@/app/context/language-context';
+import { useTour } from '@/app/hooks/useTour';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useApplications } from '@/app/context/ApplicationContext';
+
+import { compressImage, validateFileSize } from '@/lib/utils/file-compressor';
 
 import {
   Dialog,
@@ -39,10 +42,11 @@ import {
 
 export default function PermohonanPage() {
   const router = useRouter();
-  const { isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { addApplication } = useApplications();
 
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
+  useTour(user?.role === 'admin');
 
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -100,120 +104,12 @@ export default function PermohonanPage() {
     dokumentPetugasMedis: null,
   });
 
-  const t: any = {
-    title: language === 'id' ? 'Form Permohonan' : 'Request Form',
-    subtitle: language === 'id' ? 'Evakuasi Medis Udara' : 'Air Medical Evacuation',
-
-    flightData: language === 'id' ? 'Data Penerbangan' : 'Flight Data',
-    patientData: language === 'id' ? 'Data Pasien' : 'Patient Data',
-    patientCondition: language === 'id' ? 'Kondisi Pasien' : 'Patient Condition',
-    companionData: language === 'id' ? 'Data Pendamping' : 'Companion Data',
-    uploadDocuments: language === 'id' ? 'Upload Dokumen' : 'Upload Documents',
-
-    serviceType: language === 'id' ? 'Jenis Layanan' : 'Service Type',
-    aircraftType: language === 'id' ? 'Jenis Pesawat' : 'Aircraft Type',
-    saveDraft: language === 'id' ? 'Simpan Draft' : 'Save Draft',
-    previous: language === 'id' ? 'Kembali' : 'Previous',
-    next: language === 'id' ? 'Lanjut' : 'Next',
-    submit: language === 'id' ? 'Kirim Permohonan' : 'Submit Request',
-    loading: language === 'id' ? 'Memproses...' : 'Processing...',
-    serviceTypePlaceholder: language === 'id' ? 'Pilih jenis layanan' : 'Select service type',
-    departure: language === 'id' ? 'Keberangkatan' : 'Departure',
-    arrival: language === 'id' ? 'Kedatangan' : 'Arrival',
-    aircraftTypePlaceholder: language === 'id' ? 'Pilih jenis pesawat' : 'Select aircraft type',
-    commercial: language === 'id' ? 'Komersial' : 'Commercial',
-    privateJet: language === 'id' ? 'Pribadi' : 'Private Jet',
-
-    groundhandlingName: language === 'id' ? 'Nama Groundhandling' : 'Groundhandling Name',
-    officerName: language === 'id' ? 'Nama Petugas' : 'Officer Name',
-    officePhone: language === 'id' ? 'No Telepon Kantor' : 'Office Phone',
-    companyEmail: language === 'id' ? 'Email Perusahaan' : 'Company Email',
-    airlineName: language === 'id' ? 'Nama Maskapai' : 'Airline Name',
-    airlineExample: language === 'id' ? 'Contoh: Garuda Indonesia' : 'Example: Garuda Indonesia',
-    flightNumber: language === 'id' ? 'No Penerbangan' : 'Flight Number',
-    flightExample: language === 'id' ? 'Contoh: GA 330' : 'Example: GA 330',
-    seatNumber: language === 'id' ? 'No Kursi' : 'Seat Number',
-    seatNote: language === 'id' ? 'Opsional' : 'Optional',
-    travelDate: language === 'id' ? 'Tanggal Perjalanan' : 'Travel Date',
-    travelTime: language === 'id' ? 'Jam Perjalanan' : 'Travel Time',
-
-    patientName: language === 'id' ? 'Nama Pasien' : 'Patient Name',
-    gender: language === 'id' ? 'Jenis Kelamin' : 'Gender',
-    tanggalLahir: language === 'id' ? 'Tanggal Lahir' : 'Date of Birth',
-    male: language === 'id' ? 'Laki-laki' : 'Male',
-    female: language === 'id' ? 'Perempuan' : 'Female',
-
-    memerlukanOksigen: language === 'id' ? 'Memerlukan Oksigen' : 'Requires Oxygen',
-    posisiPasien: language === 'id' ? 'Posisi Pasien' : 'Patient Position',
-    tingkatKesadaran: language === 'id' ? 'Tingkat Kesadaran' : 'Level of Consciousness',
-    tekananDarah: language === 'id' ? 'Tekanan Darah' : 'Blood Pressure',
-    tekananDarahExample: language === 'id' ? '120/80 mmHg' : '120/80 mmHg',
-    nadiExample: language === 'id' ? '80 bpm' : '80 bpm',
-    frekuensiNafasExample: language === 'id' ? '16 bpm' : '16 bpm',
-    saturasiOksigenExample: language === 'id' ? '98%' : '98%',
-    tingkatKesadaranExample: language === 'id' ? 'Skor 3-15' : 'Score 3-15',
-    nadi: language === 'id' ? 'Nadi' : 'Pulse',
-    frekuensiNafas: language === 'id' ? 'Frekuensi Nafas' : 'Respiratory Rate',
-    saturasiOksigen: language === 'id' ? 'Saturasi Oksigen' : 'Oxygen Saturation',
-    yes: language === 'id' ? 'Ya' : 'Yes',
-    no: language === 'id' ? 'Tidak' : 'No',
-    sitting: language === 'id' ? 'Duduk' : 'Sitting',
-    lying: language === 'id' ? 'Berbaring' : 'Lying Down',
-
-    jumlahPendamping: language === 'id' ? 'Jumlah Pendamping' : 'Number of Companions',
-    hubungandenganPasien: language === 'id' ? 'Hubungan dengan Pasien' : 'Relationship to Patient',
-    nomorTeleponPendampingMedis: language === 'id' ? 'No. Telp Pendamping Medis' : 'Medical Companion Phone',
-    nomorTeleponKeluarga: language === 'id' ? 'No. Telp Keluarga' : 'Family Phone Number',
-    nosuratIzin: language === 'id' ? 'No Surat Izin Praktik' : 'Permit Letter Number',
-    namaPendamping: language === 'id' ? 'Nama Pendamping' : 'Companion Name',
-    nosuratIzinExample: language === 'id' ? 'Contoh: No SIP' : 'Example: Permit Number',
-
-    family: language === 'id' ? 'Keluarga' : 'Family',
-    doctor: language === 'id' ? 'Dokter' : 'Doctor',
-    nurse: language === 'id' ? 'Perawat' : 'Nurse',
-    other: language === 'id' ? 'Lainnya' : 'Other',
-
-    practiceLicense: language === 'id' ? 'Surat Izin Praktik Pendamping' : 'Companion Practice License',
-    referralLetter: language === 'id' ? 'Surat Rujukan / Penerimaan' : 'Referral / Acceptance Letter',
-    manifestTicket: language === 'id' ? 'Manifest / Tiket Pesawat' : 'Manifest / Flight Ticket',
-    medicalOfficerDoc: language === 'id' ? 'Dokumen Petugas Medis' : 'Medical Officer Documents',
-
-    patientConditionPhoto: language === 'id' ? 'Foto Kondisi Pasien' : 'Patient Condition Photo',
-    patientId: language === 'id' ? 'KTP Pasien' : 'Patient ID Card',
-    medicalRecord: language === 'id' ? 'Rekam Medis Pasien' : 'Patient Medical Record',
-    flightTicket: language === 'id' ? 'Tiket Pesawat' : 'Flight Ticket',
-
-    fileUploaded: language === 'id' ? 'File terunggah' : 'File uploaded',
-    chooseFile: language === 'id' ? 'Pilih PDF / Image...' : 'Choose PDF / Image...',
-    previewDoc: language === 'id' ? 'Preview Dokumen' : 'Document Preview',
-    confirmFile: language === 'id' ? 'Apakah Anda yakin ingin menggunakan file ini?' : 'Are you sure you want to use this file?',
-    uploadAgain: language === 'id' ? 'Ganti File' : 'Change File',
-    save: language === 'id' ? 'Simpan Dokumen' : 'Save Document',
-
-    successTitle: language === 'id' ? 'Permohonan Berhasil' : 'Request Submitted',
-    successDesc: language === 'id' ? 'Permohonan Anda berhasil dikirim dan sedang dalam antrean verifikasi admin.' : 'Your application was successfully submitted and is pending admin verification.',
-    backDashboard: language === 'id' ? 'Kembali ke Dashboard' : 'Back to Dashboard',
-
-    errorTitle: language === 'id' ? 'Data Belum Lengkap' : 'Incomplete Data',
-    errorDesc: language === 'id' ? 'Harap lengkapi field wajib berikut sebelum melanjutkan:' : 'Please complete the following required fields before proceeding:',
-    completeData: language === 'id' ? 'Lengkapi Sekarang' : 'Complete Now',
-
-    flightSectionDesc: language === 'id' ? 'Informasi detail perjalanan dan armada pesawat.' : 'Flight travel and aircraft details.',
-    patientSectionDesc: language === 'id' ? 'Identitas dan data biologis pasien yang dievakuasi.' : 'Patient identity and biological data.',
-    uploadSectionDesc: language === 'id' ? 'Pastikan file yang diunggah jelas dan dapat dibaca (Maks. 5MB).' : 'Ensure uploaded files are clear and readable (Max 5MB).',
-
-    draftSaved: language === 'id' ? 'Draft berhasil disimpan' : 'Draft saved successfully',
-    uploadSuccess: language === 'id' ? 'Dokumen berhasil disimpan' : 'Document saved',
-    uploadFailed: language === 'id' ? 'Upload gagal' : 'Upload failed',
-    submitFailed: language === 'id' ? 'Terjadi kesalahan saat mengirim data' : 'An error occurred while submitting data',
-  };
-
   const steps = [
-    { id: 1, name: t.flightData },
-    { id: 2, name: t.patientData },
-    { id: 3, name: t.patientCondition },
-    { id: 4, name: t.companionData },
-    { id: 5, name: t.uploadDocuments },
+    { id: 1, name: t('pages.permohonan.stepper.flight') },
+    { id: 2, name: t('pages.permohonan.stepper.patient') },
+    { id: 3, name: t('pages.permohonan.stepper.condition') },
+    { id: 4, name: t('pages.permohonan.stepper.companion') },
+    { id: 5, name: t('pages.permohonan.stepper.documents') },
   ];
 
   function toggleLanguage() {
@@ -231,15 +127,30 @@ export default function PermohonanPage() {
     const errors: string[] = [];
 
     if (currentStep === 1 && !formData.tanggalPerjalanan) {
-      errors.push(language === 'id' ? 'Tanggal perjalanan wajib diisi' : 'Travel date is required');
+      errors.push(t('pages.permohonan.errors.travelDateRequired'));
     }
 
     if (currentStep === 1 && !formData.jamPerjalanan) {
-      errors.push(language === 'id' ? 'Jam perjalanan wajib diisi' : 'Travel time is required');
+      errors.push(t('pages.permohonan.errors.travelTimeRequired'));
+    }
+
+    // Validasi 24 Jam
+    if (
+      currentStep === 1 &&
+      formData.tanggalPerjalanan &&
+      formData.jamPerjalanan
+    ) {
+      const travelDateTime = new Date(
+        `${formData.tanggalPerjalanan}T${formData.jamPerjalanan}:00`,
+      );
+      const now = new Date();
+      if (travelDateTime.getTime() - now.getTime() < 24 * 60 * 60 * 1000) {
+        errors.push(t('pages.permohonan.errors.tooClose'));
+      }
     }
 
     if (currentStep === 2 && !formData.namaPasien) {
-      errors.push(language === 'id' ? 'Nama pasien wajib diisi' : 'Patient name is required');
+      errors.push(t('pages.permohonan.errors.patientNameRequired'));
     }
 
     if (errors.length > 0) {
@@ -260,18 +171,28 @@ export default function PermohonanPage() {
   }
 
   function handleSaveDraft() {
-    toast.success(t.draftSaved);
+    toast.success(t('pages.permohonan.draftSaved'));
   }
 
   async function handleSubmit() {
     const errors: string[] = [];
 
     if (!formData.tanggalPerjalanan) {
-      errors.push(language === 'id' ? 'Tanggal perjalanan wajib diisi' : 'Travel date is required');
+      errors.push(t('pages.permohonan.errors.travelDateRequired'));
     }
 
     if (!formData.namaPasien) {
-      errors.push(language === 'id' ? 'Nama pasien wajib diisi' : 'Patient name is required');
+      errors.push(t('pages.permohonan.errors.patientNameRequired'));
+    }
+
+    if (formData.tanggalPerjalanan && formData.jamPerjalanan) {
+      const travelDateTime = new Date(
+        `${formData.tanggalPerjalanan}T${formData.jamPerjalanan}:00`,
+      );
+      const now = new Date();
+      if (travelDateTime.getTime() - now.getTime() < 24 * 60 * 60 * 1000) {
+        errors.push(t('pages.permohonan.errors.tooClose'));
+      }
     }
 
     if (errors.length > 0) {
@@ -311,7 +232,10 @@ export default function PermohonanPage() {
       data.append('jumlahPendamping', formData.jumlahPendamping || '');
       data.append('namaPendamping', formData.namaPendamping || '');
       data.append('hubunganPasien', formData.hubunganPendamping || '');
-      data.append('noTeleponPendamping', formData.nomorTeleponPendampingMedis || '');
+      data.append(
+        'noTeleponPendamping',
+        formData.nomorTeleponPendampingMedis || '',
+      );
       data.append('noTeleponKeluarga', formData.nomorTeleponKeluarga || '');
       data.append('nosuratIzin', formData.nosuratIzin || '');
 
@@ -342,7 +266,7 @@ export default function PermohonanPage() {
       setShowSuccessModal(true);
     } catch (error) {
       console.error(error);
-      toast.error(t.submitFailed);
+      toast.error(t('pages.permohonan.submitFailed'));
     } finally {
       setLoadingSubmit(false);
     }
@@ -402,9 +326,20 @@ export default function PermohonanPage() {
   async function confirmUpload() {
     if (!selectedFile || !previewField) return;
 
+    // Validate overall size before any processing (10MB limit)
+    if (!validateFileSize(selectedFile, 10)) {
+      toast.error(t('pages.permohonan.errors.fileTooLarge') || 'File too large (max 10MB)');
+      return;
+    }
+
     try {
+      setLoadingSubmit(true);
+      
+      // Perform compression for images (returns original if not an image or already small)
+      const fileToUpload = await compressImage(selectedFile, 1);
+
       const data = new FormData();
-      data.append('file', selectedFile);
+      data.append('file', fileToUpload);
       data.append('fileType', previewField);
 
       const res = await fetch('/api/upload/medical-document', {
@@ -423,10 +358,12 @@ export default function PermohonanPage() {
       }));
 
       resetPreview();
-      toast.success(t.uploadSuccess);
+      toast.success(t('pages.permohonan.uploadSuccess'));
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error(t.uploadFailed);
+      toast.error(t('pages.permohonan.uploadFailed'));
+    } finally {
+      setLoadingSubmit(false);
     }
   }
 
@@ -462,7 +399,8 @@ export default function PermohonanPage() {
   const inputClass =
     'h-12 w-full rounded-xl bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-blue-500/15 focus-visible:border-blue-500 hover:border-slate-300 transition-all duration-300 shadow-sm';
 
-  const labelClass = 'text-sm font-semibold text-slate-700 tracking-tight mb-1 block';
+  const labelClass =
+    'text-sm font-semibold text-slate-700 tracking-tight mb-1 block';
 
   const renderUploadField = (
     label: string,
@@ -516,7 +454,9 @@ export default function PermohonanPage() {
                 formData[field] ? 'text-emerald-800' : 'text-slate-700',
               )}
             >
-              {formData[field] ? t.fileUploaded : t.chooseFile}
+              {formData[field]
+                ? t('evacuation.fileUploaded')
+                : t('evacuation.chooseFile')}
             </span>
           </div>
         </div>
@@ -536,9 +476,6 @@ export default function PermohonanPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/50 py-10 px-4 sm:px-6 lg:px-8">
-      
-  
-
       <div className="max-w-[52rem] mx-auto space-y-10">
         {/* HEADER */}
         <div className="text-center space-y-4 pt-6">
@@ -546,16 +483,17 @@ export default function PermohonanPage() {
             <FileText className="size-8" strokeWidth={2} />
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            {t.title}
+            {t('pages.permohonan.title')}
           </h1>
-          <p className="text-slate-500 font-medium text-lg">{t.subtitle}</p>
+          <p className="text-slate-500 font-medium text-lg">
+            {t('pages.permohonan.subtitle')}
+          </p>
         </div>
 
         {/* MAIN CARD */}
         <div className="bg-white/95 backdrop-blur-xl p-6 sm:p-12 rounded-[2.5rem] shadow-2xl shadow-blue-900/5 border border-white relative overflow-visible">
-          
           {/* STEPPER */}
-          <div className="w-full max-w-3xl mx-auto mb-14 mt-2">
+          <div id="tour-permohonan-stepper" className="w-full max-w-3xl mx-auto mb-14 mt-2">
             <div className="flex items-start justify-between relative">
               <div className="absolute top-5 left-8 right-8 h-[3px] bg-slate-100 -z-10 rounded-full" />
               <div
@@ -576,8 +514,8 @@ export default function PermohonanPage() {
                       currentStep > step.id
                         ? 'bg-blue-600 border-blue-600 text-white shadow-md'
                         : currentStep === step.id
-                        ? 'bg-white border-blue-600 text-blue-600 shadow-[0_0_0_4px_rgba(37,99,235,0.15)] scale-110'
-                        : 'bg-white border-slate-200 text-slate-400',
+                          ? 'bg-white border-blue-600 text-blue-600 shadow-[0_0_0_4px_rgba(37,99,235,0.15)] scale-110'
+                          : 'bg-white border-slate-200 text-slate-400',
                     )}
                   >
                     {currentStep > step.id ? (
@@ -604,23 +542,25 @@ export default function PermohonanPage() {
           </div>
 
           {/* FORM CONTENT */}
-          <div className="mt-8">
+          <div id="tour-permohonan-form" className="mt-8">
             {/* STEP 1 */}
             {currentStep === 1 && (
               <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-500">
                 <div className="border-b border-slate-100 pb-5">
                   <h2 className="text-2xl font-bold text-slate-900">
-                    {t.flightData}
+                    {t('evacuation.flightInfo')}
                   </h2>
                   <p className="text-sm text-slate-500 mt-1.5 font-medium">
-                    {t.flightSectionDesc}
+                    {t('pages.permohonan.flightSectionDesc')}
                   </p>
                 </div>
 
                 {/* Wrapper untuk input panjang kebawah */}
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.serviceType}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.serviceType')}
+                    </Label>
                     <Select
                       value={formData.jenisLayanan}
                       onValueChange={(value) =>
@@ -628,17 +568,25 @@ export default function PermohonanPage() {
                       }
                     >
                       <SelectTrigger className={inputClass}>
-                        <SelectValue placeholder={t.serviceTypePlaceholder} />
+                        <SelectValue
+                          placeholder={t('evacuation.serviceType')}
+                        />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl shadow-lg border-slate-100">
-                        <SelectItem value="keberangkatan">{t.departure}</SelectItem>
-                        <SelectItem value="kedatangan">{t.arrival}</SelectItem>
+                        <SelectItem value="keberangkatan">
+                          {t('evacuation.departure')}
+                        </SelectItem>
+                        <SelectItem value="kedatangan">
+                          {t('evacuation.arrival')}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.aircraftType}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.aircraftType')}
+                    </Label>
                     <Select
                       value={formData.jenisPesawat}
                       onValueChange={(value) =>
@@ -646,37 +594,53 @@ export default function PermohonanPage() {
                       }
                     >
                       <SelectTrigger className={inputClass}>
-                        <SelectValue placeholder={t.aircraftTypePlaceholder} />
+                        <SelectValue
+                          placeholder={t('evacuation.aircraftType')}
+                        />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl shadow-lg border-slate-100">
-                        <SelectItem value="komersial">{t.commercial}</SelectItem>
-                        <SelectItem value="jetPribadi">{t.privateJet}</SelectItem>
+                        <SelectItem value="komersial">
+                          {t('evacuation.commercial')}
+                        </SelectItem>
+                        <SelectItem value="jetPribadi">
+                          {t('evacuation.privateJet')}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.groundhandlingName}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.groundHandlingName')}
+                    </Label>
                     <Input
                       value={formData.namaGroundhandling}
-                      onChange={(e) => updateField('namaGroundhandling', e.target.value)}
+                      onChange={(e) =>
+                        updateField('namaGroundhandling', e.target.value)
+                      }
                       className={inputClass}
                       placeholder="Ex: PT Gapura Angkasa"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.officerName}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.officerName')}
+                    </Label>
                     <Input
                       value={formData.namaPetugas}
-                      onChange={(e) => updateField('namaPetugas', e.target.value)}
+                      onChange={(e) =>
+                        updateField('namaPetugas', e.target.value)
+                      }
                       className={inputClass}
                       placeholder="John Doe"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.officePhone}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.officePhone')}
+                    </Label>
                     <Input
                       type="tel"
                       value={formData.noTelepon}
@@ -687,38 +651,55 @@ export default function PermohonanPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.companyEmail}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.companyEmail')}
+                    </Label>
                     <Input
                       type="email"
                       value={formData.emailPerusahaan}
-                      onChange={(e) => updateField('emailPerusahaan', e.target.value)}
+                      onChange={(e) =>
+                        updateField('emailPerusahaan', e.target.value)
+                      }
                       className={inputClass}
                       placeholder="contact@company.com"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.airlineName}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.airlineName')}
+                    </Label>
                     <Input
                       value={formData.namaMaskapai}
-                      onChange={(e) => updateField('namaMaskapai', e.target.value)}
+                      onChange={(e) =>
+                        updateField('namaMaskapai', e.target.value)
+                      }
                       className={inputClass}
-                      placeholder={t.airlineExample}
+                      placeholder={t('pages.permohonan.fields.airlineExample')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.flightNumber}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.flightNumber')}
+                    </Label>
                     <Input
                       value={formData.noPenerbangan}
-                      onChange={(e) => updateField('noPenerbangan', e.target.value)}
+                      onChange={(e) =>
+                        updateField('noPenerbangan', e.target.value)
+                      }
                       className={inputClass}
-                      placeholder={t.flightExample}
+                      placeholder={t('pages.permohonan.fields.flightExample')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.seatNumber} <span className="text-slate-400 font-normal text-xs ml-1">({t.seatNote})</span></Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.seatNumber')}{' '}
+                      <span className="text-slate-400 font-normal text-xs ml-1">
+                        ({t('pages.permohonan.fields.seatNote')})
+                      </span>
+                    </Label>
                     <Input
                       value={formData.noKursi}
                       onChange={(e) => updateField('noKursi', e.target.value)}
@@ -731,24 +712,30 @@ export default function PermohonanPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                     <div className="space-y-2">
                       <Label className={labelClass}>
-                        {t.travelDate} <span className="text-rose-500">*</span>
+                        {t('evacuation.travelDate')}{' '}
+                        <span className="text-rose-500">*</span>
                       </Label>
                       <Input
                         type="date"
                         value={formData.tanggalPerjalanan}
-                        onChange={(e) => updateField('tanggalPerjalanan', e.target.value)}
+                        onChange={(e) =>
+                          updateField('tanggalPerjalanan', e.target.value)
+                        }
                         className={inputClass}
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label className={labelClass}>
-                        {t.travelTime} <span className="text-rose-500">*</span>
+                        {t('evacuation.travelTime')}{' '}
+                        <span className="text-rose-500">*</span>
                       </Label>
                       <Input
                         type="time"
                         value={formData.jamPerjalanan}
-                        onChange={(e) => updateField('jamPerjalanan', e.target.value)}
+                        onChange={(e) =>
+                          updateField('jamPerjalanan', e.target.value)
+                        }
                         className={inputClass}
                       />
                     </div>
@@ -762,21 +749,24 @@ export default function PermohonanPage() {
               <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-500">
                 <div className="border-b border-slate-100 pb-5">
                   <h2 className="text-2xl font-bold text-slate-900">
-                    {t.patientData}
+                    {t('evacuation.patientInfo')}
                   </h2>
                   <p className="text-sm text-slate-500 mt-1.5 font-medium">
-                    {t.patientSectionDesc}
+                    {t('pages.permohonan.patientSectionDesc')}
                   </p>
                 </div>
 
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <Label className={labelClass}>
-                      {t.patientName} <span className="text-rose-500">*</span>
+                      {t('evacuation.patientName')}{' '}
+                      <span className="text-rose-500">*</span>
                     </Label>
                     <Input
                       value={formData.namaPasien}
-                      onChange={(e) => updateField('namaPasien', e.target.value)}
+                      onChange={(e) =>
+                        updateField('namaPasien', e.target.value)
+                      }
                       className={inputClass}
                       placeholder="Jane Doe"
                     />
@@ -785,27 +775,39 @@ export default function PermohonanPage() {
                   {/* KHUSUS GENDER & TANGGAL LAHIR: Membagi 2 kolom */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                     <div className="space-y-2">
-                      <Label className={labelClass}>{t.gender}</Label>
+                      <Label className={labelClass}>
+                        {t('evacuation.gender')}
+                      </Label>
                       <Select
                         value={formData.jenisKelamin}
-                        onValueChange={(value) => updateField('jenisKelamin', value)}
+                        onValueChange={(value) =>
+                          updateField('jenisKelamin', value)
+                        }
                       >
                         <SelectTrigger className={inputClass}>
-                          <SelectValue placeholder={t.gender} />
+                          <SelectValue placeholder={t('evacuation.gender')} />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl shadow-lg border-slate-100">
-                          <SelectItem value="LakiLaki">{t.male}</SelectItem>
-                          <SelectItem value="Perempuan">{t.female}</SelectItem>
+                          <SelectItem value="LakiLaki">
+                            {t('evacuation.male')}
+                          </SelectItem>
+                          <SelectItem value="Perempuan">
+                            {t('evacuation.female')}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label className={labelClass}>{t.tanggalLahir}</Label>
+                      <Label className={labelClass}>
+                        {t('evacuation.dateOfBirth')}
+                      </Label>
                       <Input
                         type="date"
                         value={formData.tanggalLahir}
-                        onChange={(e) => updateField('tanggalLahir', e.target.value)}
+                        onChange={(e) =>
+                          updateField('tanggalLahir', e.target.value)
+                        }
                         className={inputClass}
                       />
                     </div>
@@ -819,91 +821,125 @@ export default function PermohonanPage() {
               <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-500">
                 <div className="border-b border-slate-100 pb-5">
                   <h2 className="text-2xl font-bold text-slate-900">
-                    {t.patientCondition}
+                    {t('evacuation.vitalSigns')}
                   </h2>
                 </div>
 
                 {/* Semua Form Full-Width */}
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.memerlukanOksigen}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.oxygen')}
+                    </Label>
                     <Select
                       value={formData.memerlukanOksigen}
-                      onValueChange={(value) => updateField('memerlukanOksigen', value)}
+                      onValueChange={(value) =>
+                        updateField('memerlukanOksigen', value)
+                      }
                     >
                       <SelectTrigger className={inputClass}>
-                        <SelectValue placeholder={t.memerlukanOksigen} />
+                        <SelectValue placeholder={t('evacuation.oxygen')} />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl shadow-lg border-slate-100">
-                        <SelectItem value="ya">{t.yes}</SelectItem>
-                        <SelectItem value="tidak">{t.no}</SelectItem>
+                        <SelectItem value="ya">
+                          {t('evacuation.yes')}
+                        </SelectItem>
+                        <SelectItem value="tidak">
+                          {t('evacuation.no')}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.posisiPasien}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.position')}
+                    </Label>
                     <Select
                       value={formData.posisiPasien}
-                      onValueChange={(value) => updateField('posisiPasien', value)}
+                      onValueChange={(value) =>
+                        updateField('posisiPasien', value)
+                      }
                     >
                       <SelectTrigger className={inputClass}>
-                        <SelectValue placeholder={t.posisiPasien} />
+                        <SelectValue placeholder={t('evacuation.position')} />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl shadow-lg border-slate-100">
-                        <SelectItem value="duduk">{t.sitting}</SelectItem>
-                        <SelectItem value="berbaring">{t.lying}</SelectItem>
+                        <SelectItem value="duduk">
+                          {t('evacuation.sitting')}
+                        </SelectItem>
+                        <SelectItem value="berbaring">
+                          {t('evacuation.lying')}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.tingkatKesadaran}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.consciousnessLevel')}
+                    </Label>
                     <Input
                       value={formData.tingkatKesadaran}
-                      onChange={(e) => updateField('tingkatKesadaran', e.target.value)}
+                      onChange={(e) =>
+                        updateField('tingkatKesadaran', e.target.value)
+                      }
                       className={inputClass}
-                      placeholder={t.tingkatKesadaranExample}
+                      placeholder={t('evacuation.consciousnessLevel')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.tekananDarah}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.bloodPressure')}
+                    </Label>
                     <Input
                       value={formData.tekananDarah}
-                      onChange={(e) => updateField('tekananDarah', e.target.value)}
+                      onChange={(e) =>
+                        updateField('tekananDarah', e.target.value)
+                      }
                       className={inputClass}
-                      placeholder={t.tekananDarahExample}
+                      placeholder={t('evacuation.bloodPressure')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.nadi}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.heartRate')}
+                    </Label>
                     <Input
                       value={formData.nadi}
                       onChange={(e) => updateField('nadi', e.target.value)}
                       className={inputClass}
-                      placeholder={t.nadiExample}
+                      placeholder={t('evacuation.heartRate')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.frekuensiNafas}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.respiratoryRate')}
+                    </Label>
                     <Input
                       value={formData.frekuensiNafas}
-                      onChange={(e) => updateField('frekuensiNafas', e.target.value)}
+                      onChange={(e) =>
+                        updateField('frekuensiNafas', e.target.value)
+                      }
                       className={inputClass}
-                      placeholder={t.frekuensiNafasExample}
+                      placeholder={t('evacuation.respiratoryRate')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.saturasiOksigen}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.oxygenSaturation')}
+                    </Label>
                     <Input
                       value={formData.saturasiOksigen}
-                      onChange={(e) => updateField('saturasiOksigen', e.target.value)}
+                      onChange={(e) =>
+                        updateField('saturasiOksigen', e.target.value)
+                      }
                       className={inputClass}
-                      placeholder={t.saturasiOksigenExample}
+                      placeholder={t('evacuation.oxygenSaturation')}
                     />
                   </div>
                 </div>
@@ -915,18 +951,22 @@ export default function PermohonanPage() {
               <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-500">
                 <div className="border-b border-slate-100 pb-5">
                   <h2 className="text-2xl font-bold text-slate-900">
-                    {t.companionData}
+                    {t('evacuation.companionInfo')}
                   </h2>
                 </div>
 
                 {/* Semua Form Full-Width */}
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.jumlahPendamping}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.numberOfCompanions')}
+                    </Label>
                     <Input
                       type="number"
                       value={formData.jumlahPendamping}
-                      onChange={(e) => updateField('jumlahPendamping', e.target.value)}
+                      onChange={(e) =>
+                        updateField('jumlahPendamping', e.target.value)
+                      }
                       className={inputClass}
                       min="0"
                     />
@@ -934,41 +974,62 @@ export default function PermohonanPage() {
 
                   <div className="space-y-2">
                     <Label className={labelClass}>
-                      {t.hubungandenganPasien}
+                      {t('evacuation.companionRelation')}
                     </Label>
                     <Select
                       value={formData.hubunganPendamping}
-                      onValueChange={(value) => updateField('hubunganPendamping', value)}
+                      onValueChange={(value) =>
+                        updateField('hubunganPendamping', value)
+                      }
                     >
                       <SelectTrigger className={inputClass}>
-                        <SelectValue placeholder={t.hubungandenganPasien} />
+                        <SelectValue
+                          placeholder={t('evacuation.companionRelation')}
+                        />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl shadow-lg border-slate-100">
-                        <SelectItem value="Keluarga">{t.family}</SelectItem>
-                        <SelectItem value="Dokter">{t.doctor}</SelectItem>
-                        <SelectItem value="Perawat">{t.nurse}</SelectItem>
-                        <SelectItem value="Lainnya">{t.other}</SelectItem>
+                        <SelectItem value="Keluarga">
+                          {t('evacuation.family')}
+                        </SelectItem>
+                        <SelectItem value="Dokter">
+                          {t('evacuation.doctor')}
+                        </SelectItem>
+                        <SelectItem value="Perawat">
+                          {t('evacuation.nurse')}
+                        </SelectItem>
+                        <SelectItem value="Lainnya">
+                          {t('evacuation.other')}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.namaPendamping}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.companionName')}
+                    </Label>
                     <Input
                       value={formData.namaPendamping}
-                      onChange={(e) => updateField('namaPendamping', e.target.value)}
+                      onChange={(e) =>
+                        updateField('namaPendamping', e.target.value)
+                      }
                       className={inputClass}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label className={labelClass}>
-                      {t.nomorTeleponPendampingMedis}
+                      {t('evacuation.companionPhone')}
                     </Label>
                     <Input
                       type="text"
                       value={formData.nomorTeleponPendampingMedis}
-                      onChange={(e) => updateField('nomorTeleponPendampingMedis', e.target.value)}
+                      onChange={(e) =>
+                        updateField(
+                          'nomorTeleponPendampingMedis',
+                          e.target.value,
+                        )
+                      }
                       className={inputClass}
                       placeholder="+62..."
                     />
@@ -976,24 +1037,30 @@ export default function PermohonanPage() {
 
                   <div className="space-y-2">
                     <Label className={labelClass}>
-                      {t.nomorTeleponKeluarga}
+                      {t('evacuation.familyPhone')}
                     </Label>
                     <Input
                       type="text"
                       value={formData.nomorTeleponKeluarga}
-                      onChange={(e) => updateField('nomorTeleponKeluarga', e.target.value)}
+                      onChange={(e) =>
+                        updateField('nomorTeleponKeluarga', e.target.value)
+                      }
                       className={inputClass}
                       placeholder="+62..."
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className={labelClass}>{t.nosuratIzin}</Label>
+                    <Label className={labelClass}>
+                      {t('evacuation.practiceNumber')}
+                    </Label>
                     <Input
                       value={formData.nosuratIzin}
-                      onChange={(e) => updateField('nosuratIzin', e.target.value)}
+                      onChange={(e) =>
+                        updateField('nosuratIzin', e.target.value)
+                      }
                       className={inputClass}
-                      placeholder={t.nosuratIzinExample}
+                      placeholder={t('evacuation.practiceNumber')}
                     />
                   </div>
                 </div>
@@ -1005,37 +1072,57 @@ export default function PermohonanPage() {
               <div className="space-y-8 animate-in slide-in-from-right-4 fade-in duration-500">
                 <div className="border-b border-slate-100 pb-5">
                   <h2 className="text-2xl font-bold text-slate-900">
-                    {t.uploadDocuments}
+                    {t('evacuation.documents')}
                   </h2>
                   <p className="text-sm text-slate-500 mt-1.5 font-medium">
-                    {t.uploadSectionDesc}
+                    {t('pages.permohonan.uploadSectionDesc')}
                   </p>
                 </div>
 
                 {/* Semua Form Full-Width */}
-                <div className="space-y-6">
-                  {renderUploadField(t.practiceLicense, 'noSuratPraktik', true)}
-                  {renderUploadField(t.patientConditionPhoto, 'fotoKondisiPasien')}
-                  {renderUploadField(t.patientId, 'ktpPasien')}
-                  {renderUploadField(t.manifestTicket, 'manifetPrivateJet')}
-                  {renderUploadField(t.medicalRecord, 'rekamMedisPasien')}
-                  {renderUploadField(t.referralLetter, 'suratRujukan', true)}
-                  {renderUploadField(t.flightTicket, 'tiketPesawat')}
-                  {renderUploadField(t.medicalOfficerDoc, 'dokumentPetugasMedis')}
+                <div id="tour-permohonan-upload" className="space-y-6">
+                  {renderUploadField(
+                    t('evacuation.practiceNumber'),
+                    'noSuratPraktik',
+                    true,
+                  )}
+                  {renderUploadField(
+                    t('evacuation.patientPhoto'),
+                    'fotoKondisiPasien',
+                  )}
+                  {renderUploadField(t('evacuation.patientID'), 'ktpPasien')}
+                  {renderUploadField(
+                    t('evacuation.manifestJet'),
+                    'manifetPrivateJet',
+                  )}
+                  {renderUploadField(
+                    t('evacuation.medicalRecord'),
+                    'rekamMedisPasien',
+                  )}
+                  {renderUploadField(
+                    t('evacuation.referralLetter'),
+                    'suratRujukan',
+                    true,
+                  )}
+                  {renderUploadField(t('evacuation.ticket'), 'tiketPesawat')}
+                  {renderUploadField(
+                    t('evacuation.medicalStaffDoc'),
+                    'dokumentPetugasMedis',
+                  )}
                 </div>
               </div>
             )}
           </div>
 
           {/* FOOTER ACTIONS */}
-          <div className="flex flex-col-reverse sm:flex-row justify-between items-center mt-12 pt-8 border-t border-slate-100 gap-4">
+          <div id="tour-permohonan-nav" className="flex flex-col-reverse sm:flex-row justify-between items-center mt-12 pt-8 border-t border-slate-100 gap-4">
             <Button
               variant="outline"
               onClick={handleSaveDraft}
               className="w-full sm:w-auto h-12 px-6 rounded-xl font-bold border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
             >
               <Save className="size-4 mr-2 group-hover:scale-110 transition-transform" />
-              {t.saveDraft}
+              {t('common.save')}
             </Button>
 
             <div className="flex w-full sm:w-auto gap-3">
@@ -1046,7 +1133,7 @@ export default function PermohonanPage() {
                   className="flex-1 sm:flex-none h-12 px-6 rounded-xl font-bold border-slate-200 text-slate-600 hover:bg-slate-50"
                 >
                   <ArrowLeft className="size-4 mr-2" />
-                  {t.previous}
+                  {t('common.previous')}
                 </Button>
               )}
 
@@ -1056,15 +1143,15 @@ export default function PermohonanPage() {
                 disabled={loadingSubmit}
               >
                 {loadingSubmit ? (
-                  t.loading
+                  t('common.loading')
                 ) : currentStep === 5 ? (
                   <>
-                    {t.submit}
+                    {t('common.submit')}
                     <Check className="size-4 ml-2" />
                   </>
                 ) : (
                   <>
-                    {t.next}
+                    {t('common.next')}
                     <ArrowRight className="size-4 ml-2" />
                   </>
                 )}
@@ -1079,9 +1166,11 @@ export default function PermohonanPage() {
         <DialogContent className="max-w-3xl rounded-[2rem] p-8 border-none shadow-2xl bg-white/95 backdrop-blur-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-extrabold text-slate-900">
-              {t.previewDoc}
+              {t('pages.penerbitan.judulPreview')}
             </DialogTitle>
-            <DialogDescription className="text-slate-500 font-medium">{t.confirmFile}</DialogDescription>
+            <DialogDescription className="text-slate-500 font-medium">
+              {t('pages.permohonan.confirmFile')}
+            </DialogDescription>
           </DialogHeader>
 
           {previewFileUrl && (
@@ -1107,7 +1196,7 @@ export default function PermohonanPage() {
               onClick={resetPreview}
               className="rounded-xl h-12 px-8 font-bold text-slate-600 hover:bg-slate-50 border-slate-200"
             >
-              {t.uploadAgain}
+              {t('pages.permohonan.uploadAgain')}
             </Button>
 
             {selectedFile && (
@@ -1115,7 +1204,7 @@ export default function PermohonanPage() {
                 onClick={confirmUpload}
                 className="rounded-xl h-12 px-8 font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20"
               >
-                {t.save}
+                {t('pages.permohonan.save')}
               </Button>
             )}
           </div>
@@ -1130,18 +1219,18 @@ export default function PermohonanPage() {
           </div>
 
           <DialogTitle className="text-2xl font-extrabold mb-3 text-slate-900">
-            {t.successTitle}
+            {t('pages.permohonan.successTitle')}
           </DialogTitle>
 
           <DialogDescription className="mb-8 text-base text-slate-500 font-medium">
-            {t.successDesc}
+            {t('pages.permohonan.successDesc')}
           </DialogDescription>
 
           <Button
             className="w-full h-14 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg shadow-lg"
             onClick={resetForm}
           >
-            {t.backDashboard}
+            {t('pages.permohonan.backDashboard')}
           </Button>
         </DialogContent>
       </Dialog>
@@ -1154,10 +1243,12 @@ export default function PermohonanPage() {
           </div>
 
           <DialogTitle className="text-2xl font-bold mb-2 text-slate-900">
-            {t.errorTitle}
+            {t('pages.permohonan.errorTitle')}
           </DialogTitle>
 
-          <DialogDescription className="text-slate-500 font-medium">{t.errorDesc}</DialogDescription>
+          <DialogDescription className="text-slate-500 font-medium">
+            {t('pages.permohonan.errorDesc')}
+          </DialogDescription>
 
           <div className="space-y-2 mt-6 mb-8 text-left bg-rose-50/50 p-4 rounded-2xl border border-rose-100">
             {errorMessages.map((msg, idx) => (
@@ -1175,7 +1266,7 @@ export default function PermohonanPage() {
             className="w-full h-12 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-lg shadow-rose-600/20"
             onClick={() => setShowErrorModal(false)}
           >
-            {t.completeData}
+            {t('pages.permohonan.completeData')}
           </Button>
         </DialogContent>
       </Dialog>

@@ -112,6 +112,30 @@ export async function PUT(
       }
     }
 
+    // Validasi Waktu jika ada perubahan tanggal/jam
+    const finalTanggal =
+      body.tanggalPerjalanan !== undefined
+        ? body.tanggalPerjalanan
+        : evacuation.tanggalPerjalanan;
+    const finalJam =
+      body.jamPerjalanan !== undefined
+        ? body.jamPerjalanan
+        : evacuation.jamPerjalanan;
+
+    if (finalTanggal) {
+      const travelDateTime = new Date(`${finalTanggal}T${finalJam || '00:00'}:00`);
+      const now = new Date();
+      if (travelDateTime.getTime() - now.getTime() < 24 * 60 * 60 * 1000) {
+        return NextResponse.json(
+          {
+            error:
+              'Waktu keberangkatan tidak boleh berdekatan. Minimal 1 hari (24 jam) sebelum keberangkatan.',
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     if (updateParts.length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
     }

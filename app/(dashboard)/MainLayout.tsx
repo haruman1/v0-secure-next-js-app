@@ -16,6 +16,7 @@ import {
   FolderOpen,
   Globe,
   ChevronLeft,
+  HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '../context/auth-context';
@@ -184,6 +185,20 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
         {/* LOGOUT AREA */}
         <div className={cn("p-6 border-t border-slate-100/80 bg-slate-50/30 shrink-0", !isSidebarOpen && "px-2")}>
+          <button 
+            id="tour-sidebar-help"
+            onClick={() => window.dispatchEvent(new CustomEvent('start-tour'))}
+            className={cn(
+              "w-full flex items-center rounded-2xl font-semibold text-[14px] text-slate-600 hover:bg-blue-50 hover:text-[#1A62FF] transition-all duration-300 group mb-2",
+              isSidebarOpen ? "justify-start gap-3.5 px-6 py-4" : "justify-center p-3"
+            )}
+          >
+            <div className="flex items-center justify-center size-9 rounded-lg bg-white border border-slate-200 text-slate-400 group-hover:bg-white group-hover:text-[#1A62FF] group-hover:border-blue-200 transition-colors duration-300 shrink-0">
+              <HelpCircle className="size-4.5" />
+            </div>
+            {isSidebarOpen && <span className="transition-opacity duration-300 ml-3.5">Tutorial</span>}
+          </button>
+
           <button 
             onClick={handleLogout} 
             className={cn(
