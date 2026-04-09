@@ -29,7 +29,6 @@ jobs:
       - name: Install deps & build
         run: |
           bun install
-          rm -rf .next 
           bun run build
       # ✅ VALIDASI (PENTING BANGET)
       - name: Validate standalone
