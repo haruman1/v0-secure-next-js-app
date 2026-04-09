@@ -21,53 +21,156 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '../context/auth-context';
 import { useLanguage } from '../context/language-context';
-
+import { useApplications } from '../context/ApplicationContext';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoading, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
-  
+  const { applications } = useApplications();
+
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   if (isLoading) return null;
 
-  const navGroups = user?.role === 'admin' 
-    ? [
-        {
-          title: t('dashboard.overview'),
-          items: [{ path: '/dashboard', label: t('dashboard.overview'), icon: LayoutDashboard }],
-        },
-        {
-          title: t('evacuation.documents') || 'Documents',
-          items: [
-            { path: '/dashboard/verifikasi', label: t('evacuation.pending'), icon: CheckCircle },
-            { path: '/dashboard/revisi', label: t('evacuation.reviewed'), icon: Edit },
-            { path: '/dashboard/penerbitan', label: t('evacuation.valid'), icon: FileCheck },
-            { path: '/dashboard/selesai', label: t('dashboard.completedRequests'), icon: CheckSquare },
-          ],
-        },
-      ]
-    : [
-        {
-          title: t('dashboard.overview'),
-          items: [{ path: '/dashboard', label: t('dashboard.overview'), icon: LayoutDashboard }],
-        },
-        {
-          title: t('dashboard.createNew'),
-          items: [{ path: '/dashboard/permohonan', label: t('evacuation.createNew'), icon: BookPlus }],
-        },
-        {
-          title: t('evacuation.status'),
-          items: [
-            { path: '/dashboard/verifikasi', label: t('evacuation.pending'), icon: Activity },
-            { path: '/dashboard/revisi', label: t('evacuation.reviewed'), icon: Edit },
-            { path: '/dashboard/selesai', label: t('dashboard.completedRequests'), icon: FolderOpen },
-          ],
-        },
-      ];
+  const countPermohonan = applications ? applications.length : 0;
+  const countVerifikasi = applications
+    ? applications.filter((a) => a.status === 'pending').length
+    : 0;
+  const countRevisi = applications
+    ? applications.filter((a) => a.status === 'reviewed').length
+    : 0;
+  const countPenerbitan = applications
+    ? applications.filter(
+        (a) => a.status === 'valid' && !(a as any).publication_document,
+      ).length
+    : 0;
+  const countSelesai = applications
+    ? applications.filter(
+        (a) => a.status === 'valid' && (a as any).publication_document,
+      ).length
+    : 0;
+
+  const getCountForPath = (path: string) => {
+    switch (path) {
+      case '/dashboard/permohonan':
+        return countPermohonan;
+      case '/dashboard/verifikasi':
+        return countVerifikasi;
+      case '/dashboard/revisi':
+        return countRevisi;
+      case '/dashboard/penerbitan':
+        return countPenerbitan;
+      case '/dashboard/selesai':
+        return countSelesai;
+      default:
+        return null;
+    }
+  };
+  const getBadgeColorByPath = (path: string) => {
+    switch (path) {
+      case '/dashboard/permohonan':
+        return 'bg-blue-500 text-white';
+
+      case '/dashboard/verifikasi':
+        return 'bg-yellow-400 text-black';
+
+      case '/dashboard/revisi':
+        return 'bg-red-500 text-white';
+
+      case '/dashboard/penerbitan':
+        return 'bg-purple-500 text-white';
+
+      case '/dashboard/selesai':
+        return 'bg-green-500 text-white';
+
+      default:
+        return 'bg-gray-400 text-white';
+    }
+  };
+  const navGroups =
+    user?.role === 'admin'
+      ? [
+          {
+            title: t('dashboard.overview'),
+            items: [
+              {
+                path: '/dashboard',
+                label: t('dashboard.overview'),
+                icon: LayoutDashboard,
+              },
+            ],
+          },
+          {
+            title: t('evacuation.documents') || 'Documents',
+            items: [
+              {
+                path: '/dashboard/verifikasi',
+                label: t('evacuation.pending'),
+                icon: CheckCircle,
+              },
+              {
+                path: '/dashboard/revisi',
+                label: t('evacuation.reviewed'),
+                icon: Edit,
+              },
+              {
+                path: '/dashboard/penerbitan',
+                label: t('evacuation.valid'),
+                icon: FileCheck,
+              },
+              {
+                path: '/dashboard/selesai',
+                label: t('dashboard.completedRequests'),
+                icon: CheckSquare,
+              },
+            ],
+          },
+        ]
+      : [
+          {
+            title: t('dashboard.overview'),
+            items: [
+              {
+                path: '/dashboard',
+                label: t('dashboard.overview'),
+                icon: LayoutDashboard,
+              },
+            ],
+          },
+          {
+            title: t('dashboard.createNew'),
+            items: [
+              {
+                path: '/dashboard/permohonan',
+                label: t('evacuation.createNew'),
+                icon: BookPlus,
+              },
+            ],
+          },
+          {
+            title: t('evacuation.status'),
+            items: [
+              {
+                path: '/dashboard/verifikasi',
+                label: t('evacuation.pending'),
+                icon: Activity,
+              },
+              {
+                path: '/dashboard/revisi',
+                label: t('evacuation.reviewed'),
+                icon: Edit,
+              },
+              {
+                path: '/dashboard/selesai',
+                label: t('dashboard.completedRequests'),
+                icon: FolderOpen,
+              },
+            ],
+          },
+        ];
 
   const handleLogout = async () => {
     await logout();
@@ -76,17 +179,17 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   // Inline style to hide scrollbar across all browsers
   const noScrollbar: React.CSSProperties = {
-    scrollbarWidth: 'none',       // Firefox
-    msOverflowStyle: 'none',      // IE/Edge
+    scrollbarWidth: 'none', // Firefox
+    msOverflowStyle: 'none', // IE/Edge
   };
 
   return (
     <div className="flex h-screen bg-[#F8FAFC] overflow-hidden">
       {/* SIDEBAR */}
-      <aside 
+      <aside
         className={cn(
-          "bg-white border-r border-slate-200/60 flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)] relative transition-all duration-300 ease-in-out",
-          isSidebarOpen ? "w-[290px]" : "w-[100px]"
+          'bg-white border-r border-slate-200/60 flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)] relative transition-all duration-300 ease-in-out',
+          isSidebarOpen ? 'w-[290px]' : 'w-[100px]',
         )}
       >
         {/* TOGGLE BUTTON */}
@@ -94,32 +197,36 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="absolute -right-3.5 top-1/2 -translate-y-1/2 size-7 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-[#1A62FF] hover:border-[#1A62FF] shadow-sm z-30 transition-all duration-300 group/toggle active:scale-90"
         >
-          <ChevronLeft 
+          <ChevronLeft
             className={cn(
-              "size-4 transition-transform duration-500", 
-              !isSidebarOpen && "rotate-180",
-              "group-hover/toggle:scale-110"
-            )} 
+              'size-4 transition-transform duration-500',
+              !isSidebarOpen && 'rotate-180',
+              'group-hover/toggle:scale-110',
+            )}
           />
         </button>
-        
+
         {/* LOGO AREA */}
-        <div className={cn(
-          "h-[104px] flex items-center border-b border-slate-100/80 shrink-0 transition-all duration-300",
-          isSidebarOpen ? "px-8" : "px-0 justify-center"
-        )}>
+        <div
+          className={cn(
+            'h-[104px] flex items-center border-b border-slate-100/80 shrink-0 transition-all duration-300',
+            isSidebarOpen ? 'px-8' : 'px-0 justify-center',
+          )}
+        >
           <div className="flex items-center gap-4 group cursor-default">
             <div className="relative flex items-center justify-center size-[82px] rounded-2xl bg-white shadow-lg overflow-hidden shrink-0 transition-transform duration-500 group-hover:rotate-3">
               <img
-                  src="/BKK.png"
-                  alt="Medivaq Logo"
-                  className="w-25 h-15 object-contain"
-                />
+                src="/icon.png"
+                alt="MEDIVAC Logo"
+                className="w-25 h-15 object-contain"
+              />
             </div>
 
             {isSidebarOpen && (
               <div className="flex flex-col pt-1 whitespace-nowrap opacity-100 transition-opacity duration-300">
-                <h1 className="font-extrabold text-[24px] tracking-tight text-slate-900 leading-none">MEDIVAC</h1>
+                <h1 className="font-extrabold text-[24px] tracking-tight text-slate-900 leading-none">
+                  MEDIVAC
+                </h1>
                 <p className="text-[10px] font-bold text-[#1A62FF]/80 uppercase tracking-[0.2em] mt-1.5">
                   {language === 'id' ? 'Evakuasi Medis' : 'Medical Evacuation'}
                 </p>
@@ -147,33 +254,76 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               ) : (
                 <div className="h-4 border-b border-slate-100 mx-2" />
               )}
-              
+
               <nav className="space-y-1.5">
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.path;
+                  const count = getCountForPath(item.path);
+
                   return (
-                    <Link 
-                      key={item.path} 
-                      href={item.path} 
+                    <Link
+                      key={item.path}
+                      href={item.path}
                       className={cn(
-                        'flex items-center rounded-2xl transition-all duration-300 ease-in-out group relative overflow-hidden',
-                        isSidebarOpen ? 'gap-4 px-3 py-2.5' : 'justify-center p-2.5',
-                        isActive ? 'bg-[#1A62FF] text-white shadow-lg shadow-blue-600/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                        'flex items-center justify-between rounded-2xl transition-all duration-300 ease-in-out group relative overflow-hidden',
+                        isSidebarOpen
+                          ? 'gap-3 px-3 py-2.5'
+                          : 'justify-center p-2.5',
+                        isActive
+                          ? 'bg-[#1A62FF] text-white shadow-lg shadow-blue-600/20'
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900',
                       )}
-                      title={!isSidebarOpen ? item.label : ""}
+                      title={!isSidebarOpen ? item.label : ''}
                     >
-                      {isActive && isSidebarOpen && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full" />}
-                      <div className={cn(
-                        'flex items-center justify-center size-[38px] rounded-xl transition-all duration-300 shrink-0',
-                        isActive ? 'bg-white/20 text-white' : 'bg-slate-100/80 text-slate-400 group-hover:bg-white group-hover:text-[#1A62FF] group-hover:shadow-sm'
-                      )}>
-                        <Icon className={cn('size-5', !isActive && 'group-hover:scale-110')} />
+                      {isActive && isSidebarOpen && (
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full" />
+                      )}
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={cn(
+                            'flex items-center justify-center size-[38px] rounded-xl transition-all duration-300 shrink-0',
+                            isActive
+                              ? 'bg-white/20 text-white'
+                              : 'bg-slate-100/80 text-slate-400 group-hover:bg-white group-hover:text-[#1A62FF] group-hover:shadow-sm',
+                          )}
+                        >
+                          <Icon
+                            className={cn(
+                              'size-5',
+                              !isActive && 'group-hover:scale-110',
+                            )}
+                          />
+                        </div>
+                        {isSidebarOpen && (
+                          <span
+                            className={cn(
+                              'text-[14px] transition-all duration-300 whitespace-nowrap',
+                              isActive
+                                ? 'font-semibold tracking-wide'
+                                : 'font-medium',
+                            )}
+                          >
+                            {item.label}
+                          </span>
+                        )}
                       </div>
-                      {isSidebarOpen && (
-                        <span className={cn('text-[14px] transition-all duration-300 whitespace-nowrap', isActive ? 'font-semibold tracking-wide' : 'font-medium')}>
-                          {item.label}
-                        </span>
+
+                      {/* BADGE COUNT */}
+                      {count !== null && count > 0 && isSidebarOpen && (
+                        <div
+                          className={cn(
+                            'flex items-center justify-center min-w-[24px] h-[24px] px-1.5 rounded-full text-[11px] font-bold transition-all duration-300',
+                            isActive
+                              ? 'bg-white text-[#1A62FF] shadow-sm'
+                              : getBadgeColorByPath(item.path),
+                          )}
+                        >
+                          {count}
+                        </div>
+                      )}
+                      {count !== null && count > 0 && !isSidebarOpen && (
+                        <div className="absolute top-1 right-1 size-2.5 bg-red-500 rounded-full border-2 border-white" />
                       )}
                     </Link>
                   );
@@ -184,44 +334,62 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* LOGOUT AREA */}
-        <div className={cn("p-6 border-t border-slate-100/80 bg-slate-50/30 shrink-0", !isSidebarOpen && "px-2")}>
-          <button 
+        <div
+          className={cn(
+            'p-6 border-t border-slate-100/80 bg-slate-50/30 shrink-0',
+            !isSidebarOpen && 'px-2',
+          )}
+        >
+          <button
             id="tour-sidebar-help"
             onClick={() => window.dispatchEvent(new CustomEvent('start-tour'))}
             className={cn(
-              "w-full flex items-center rounded-2xl font-semibold text-[14px] text-slate-600 hover:bg-blue-50 hover:text-[#1A62FF] transition-all duration-300 group mb-2",
-              isSidebarOpen ? "justify-start gap-3.5 px-6 py-4" : "justify-center p-3"
+              'w-full flex items-center rounded-2xl font-semibold text-[14px] text-slate-600 hover:bg-blue-50 hover:text-[#1A62FF] transition-all duration-300 group mb-2',
+              isSidebarOpen
+                ? 'justify-start gap-3.5 px-6 py-4'
+                : 'justify-center p-3',
             )}
           >
             <div className="flex items-center justify-center size-9 rounded-lg bg-white border border-slate-200 text-slate-400 group-hover:bg-white group-hover:text-[#1A62FF] group-hover:border-blue-200 transition-colors duration-300 shrink-0">
               <HelpCircle className="size-4.5" />
             </div>
-            {isSidebarOpen && <span className="transition-opacity duration-300 ml-3.5">Tutorial</span>}
+            {isSidebarOpen && (
+              <span className="transition-opacity duration-300 ml-3.5">
+                Tutorial
+              </span>
+            )}
           </button>
 
-          <button 
-            onClick={handleLogout} 
+          <button
+            onClick={handleLogout}
             className={cn(
-              "w-full flex items-center rounded-2xl font-semibold text-[14px] text-slate-600 hover:bg-blue-50 hover:text-[#1A62FF] transition-all duration-300 group",
-              isSidebarOpen ? "justify-start gap-3.5 px-6 py-4" : "justify-center p-3"
+              'w-full flex items-center rounded-2xl font-semibold text-[14px] text-slate-600 hover:bg-blue-50 hover:text-[#1A62FF] transition-all duration-300 group',
+              isSidebarOpen
+                ? 'justify-start gap-3.5 px-6 py-4'
+                : 'justify-center p-3',
             )}
           >
             <div className="flex items-center justify-center size-9 rounded-lg bg-white border border-slate-200 text-slate-400 group-hover:bg-white group-hover:text-[#1A62FF] group-hover:border-blue-200 transition-colors duration-300 shrink-0">
               <LogOut className="size-4.5 transition-transform group-hover:-translate-x-1" />
             </div>
-            {isSidebarOpen && <span className="transition-opacity duration-300">{t('common.logout')}</span>}
+            {isSidebarOpen && (
+              <span className="transition-opacity duration-300">
+                {t('common.logout')}
+              </span>
+            )}
           </button>
         </div>
       </aside>
 
       {/* FLOATING LANGUAGE SWITCHER */}
       <div className="fixed top-8 right-8 z-50 flex items-center justify-end">
-        <div className={cn(
-            "flex items-center bg-white rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-slate-100/80 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden",
-            isLangOpen ? "p-1.5 pr-2.5" : "p-1.5"
+        <div
+          className={cn(
+            'flex items-center bg-white rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-slate-100/80 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden',
+            isLangOpen ? 'p-1.5 pr-2.5' : 'p-1.5',
           )}
         >
-          <button 
+          <button
             onClick={() => setIsLangOpen(!isLangOpen)}
             className="flex items-center justify-center h-10 px-4 rounded-full bg-[#1A62FF] text-white shadow-sm shrink-0 hover:scale-105 transition-transform"
           >
@@ -231,26 +399,43 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             </span>
           </button>
 
-          <div className={cn(
-              "flex items-center transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden",
-              isLangOpen ? "max-w-[120px] opacity-100 ml-2" : "max-w-0 opacity-0 ml-0 pointer-events-none"
+          <div
+            className={cn(
+              'flex items-center transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden',
+              isLangOpen
+                ? 'max-w-[120px] opacity-100 ml-2'
+                : 'max-w-0 opacity-0 ml-0 pointer-events-none',
             )}
           >
             <div className="flex items-center gap-1 w-[90px]">
               <button
-                onClick={() => { setLanguage('id'); setIsLangOpen(false); }}
+                onClick={() => {
+                  setLanguage('id');
+                  setIsLangOpen(false);
+                }}
                 className={cn(
                   'flex-1 py-1.5 text-[12px] font-bold rounded-full transition-all duration-300',
-                  language === 'id' ? 'bg-[#1A62FF] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100'
+                  language === 'id'
+                    ? 'bg-[#1A62FF] text-white shadow-sm'
+                    : 'text-slate-500 hover:bg-slate-100',
                 )}
-              >ID</button>
+              >
+                ID
+              </button>
               <button
-                onClick={() => { setLanguage('en'); setIsLangOpen(false); }}
+                onClick={() => {
+                  setLanguage('en');
+                  setIsLangOpen(false);
+                }}
                 className={cn(
                   'flex-1 py-1.5 text-[12px] font-bold rounded-full transition-all duration-300',
-                  language === 'en' ? 'bg-[#1A62FF] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100'
+                  language === 'en'
+                    ? 'bg-[#1A62FF] text-white shadow-sm'
+                    : 'text-slate-500 hover:bg-slate-100',
                 )}
-              >EN</button>
+              >
+                EN
+              </button>
             </div>
           </div>
         </div>

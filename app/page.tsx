@@ -122,7 +122,7 @@ export default function Home() {
           >
             <div className="h-10 w-10 rounded-xl overflow-hidden bg-white shadow-sm border border-slate-100 group-hover:scale-105 transition-transform duration-300">
               <Image
-                src="/Medivac.png"
+                src="/icon.png"
                 alt="Medivac Logo"
                 width={40}
                 height={40}
@@ -224,7 +224,7 @@ export default function Home() {
 
             <div className="relative mt-10 rounded-2xl aspect-video overflow-hidden bg-white flex items-center justify-center">
               <Image
-                src="/Medivac.png"
+                src="/icon.png"
                 alt="Medivac Dashboard"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
