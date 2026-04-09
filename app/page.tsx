@@ -122,7 +122,7 @@ export default function Home() {
           >
             <div className="h-10 w-10 rounded-xl overflow-hidden bg-white shadow-sm border border-slate-100 group-hover:scale-105 transition-transform duration-300">
               <Image
-                src="/Medivac.png"
+                src="/Medivaq.png"
                 alt="Medivac Logo"
                 width={40}
                 height={40}
@@ -224,7 +224,7 @@ export default function Home() {
 
             <div className="relative mt-10 rounded-2xl aspect-video overflow-hidden bg-white flex items-center justify-center">
               <Image
-                src="/Medivac.png"
+                src="/Medivaq.png"
                 alt="Medivac Dashboard"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -311,7 +311,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2 font-bold text-[#0B1F66]">
             <Image
-              src="/Medivac.png"
+              src="/Medivaq.png"
               alt="Medivac Logo"
               width={20}
               height={20}
