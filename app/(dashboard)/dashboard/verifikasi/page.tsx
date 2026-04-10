@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/auth-context';
 import { useLanguage } from '@/app/context/language-context';
@@ -30,6 +30,7 @@ import {
   UserCircle2,
   FileCheck,
   Plus,
+  Printer,
 } from 'lucide-react';
 
 import {
@@ -209,6 +210,9 @@ export default function VerifikasiPage() {
   const [revisiNote, setRevisiNote] = useState('');
   const [submittingRevisi, setSubmittingRevisi] = useState(false);
   const [fieldNotes, setFieldNotes] = useState<Record<string, string>>({});
+
+  const [previewModal, setPreviewModal] = useState(false);
+  const [previewFileUrl, setPreviewFileUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading) fetchApplications();
@@ -712,7 +716,10 @@ export default function VerifikasiPage() {
                     }
                     currentNote={fieldNotes.fotoKondisiPasien}
                     isAdmin={isAdmin}
-                    placeholder={t('pages.verifikasi.revPlaceholder')}
+                    onPreview={() => {
+                      setPreviewFileUrl(selectedApp.fotoKondisiPasien || null);
+                      setPreviewModal(true);
+                    }}
                   />
                   <DocField
                     label={t('evacuation.patientID')}
@@ -722,7 +729,68 @@ export default function VerifikasiPage() {
                     }
                     currentNote={fieldNotes.ktpPasien}
                     isAdmin={isAdmin}
-                    placeholder={t('pages.verifikasi.revPlaceholder')}
+                    onPreview={() => {
+                      setPreviewFileUrl(selectedApp.ktpPasien || null);
+                      setPreviewModal(true);
+                    }}
+                  />
+                  <DocField
+                    label={t('evacuation.manifestJet')}
+                    src={selectedApp.manifetPrivateJet}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({
+                        ...prev,
+                        manifetPrivateJet: val,
+                      }))
+                    }
+                    currentNote={fieldNotes.manifetPrivateJet}
+                    isAdmin={isAdmin}
+                    onPreview={() => {
+                      setPreviewFileUrl(selectedApp.manifetPrivateJet || null);
+                      setPreviewModal(true);
+                    }}
+                  />
+                  <DocField
+                    label={t('evacuation.medicalRecord')}
+                    src={selectedApp.rekamMedisPasien}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({
+                        ...prev,
+                        rekamMedisPasien: val,
+                      }))
+                    }
+                    currentNote={fieldNotes.rekamMedisPasien}
+                    isAdmin={isAdmin}
+                    onPreview={() => {
+                      setPreviewFileUrl(selectedApp.rekamMedisPasien || null);
+                      setPreviewModal(true);
+                    }}
+                  />
+                  <DocField
+                    label={t('evacuation.referralLetter')}
+                    src={selectedApp.suratRujukan}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, suratRujukan: val }))
+                    }
+                    currentNote={fieldNotes.suratRujukan}
+                    isAdmin={isAdmin}
+                    onPreview={() => {
+                      setPreviewFileUrl(selectedApp.suratRujukan || null);
+                      setPreviewModal(true);
+                    }}
+                  />
+                  <DocField
+                    label={t('evacuation.ticket')}
+                    src={selectedApp.tiketPesawat}
+                    onNoteChange={(val) =>
+                      setFieldNotes((prev) => ({ ...prev, tiketPesawat: val }))
+                    }
+                    currentNote={fieldNotes.tiketPesawat}
+                    isAdmin={isAdmin}
+                    onPreview={() => {
+                      setPreviewFileUrl(selectedApp.tiketPesawat || null);
+                      setPreviewModal(true);
+                    }}
                   />
                   <DocField
                     label={t('evacuation.medicalStaffDoc')}
@@ -735,7 +803,12 @@ export default function VerifikasiPage() {
                     }
                     currentNote={fieldNotes.dokumentPetugasMedis}
                     isAdmin={isAdmin}
-                    placeholder={t('pages.verifikasi.revPlaceholder')}
+                    onPreview={() => {
+                      setPreviewFileUrl(
+                        selectedApp.dokumentPetugasMedis || null,
+                      );
+                      setPreviewModal(true);
+                    }}
                   />
                 </div>
               </div>
@@ -808,7 +881,7 @@ export default function VerifikasiPage() {
 
                 {/* ADMIN ACTIONS SECTION */}
                 {isAdmin && (
-                  <div className="space-y-6 bg-blue-50/50 p-8 rounded-3xl border border-blue-100 shadow-inner">
+                  <div className="space-y-6 bg-blue-50/50 p-8 rounded-3xl border border-blue-100 shadow-inner print:hidden">
                     <div className="space-y-3">
                       <Label className="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <FileText className="w-5 h-5 text-blue-600" />
@@ -853,6 +926,39 @@ export default function VerifikasiPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* MODAL PREVIEW DOKUMEN */}
+      <Dialog open={previewModal} onOpenChange={setPreviewModal}>
+        <DialogContent
+          className="max-w-4xl p-0 rounded-2xl overflow-hidden border-none shadow-2xl"
+          style={{ fontFamily: "'Poppins', sans-serif" }}
+        >
+          <DialogHeader className="p-6 bg-slate-900 text-white border-b border-slate-800">
+            <DialogTitle className="text-xl font-bold">
+              {t('common.preview')}
+            </DialogTitle>
+          </DialogHeader>
+          {previewFileUrl && (
+            <div className="bg-slate-100 flex items-center justify-center p-6">
+              <div className="w-full h-[70vh] rounded-xl overflow-hidden bg-white shadow-inner border border-slate-200 flex items-center justify-center">
+                {previewFileUrl.toLowerCase().endsWith('.pdf') ? (
+                  <iframe
+                    src={safeImage(previewFileUrl)}
+                    className="w-full h-full"
+                    title="PDF Preview"
+                  />
+                ) : (
+                  <img
+                    src={safeImage(previewFileUrl)}
+                    alt="Preview"
+                    className="w-full h-full object-contain p-2"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -890,7 +996,7 @@ function DetailField({
             variant={currentNote ? 'destructive' : 'ghost'}
             size="icon"
             className={cn(
-              'h-7 w-7 rounded-lg transition-all',
+              'h-7 w-7 rounded-lg transition-all print:hidden',
               currentNote
                 ? 'bg-red-50 text-red-600 hover:bg-red-100'
                 : 'text-slate-400 hover:bg-slate-100 hover:text-sky-600',
@@ -938,8 +1044,10 @@ function DocField({
   currentNote?: string;
   isAdmin?: boolean;
   placeholder?: string;
+  onPreview?: () => void;
 }) {
   const [showInput, setShowInput] = useState(false);
+  const isPdf = src?.toLowerCase().endsWith('.pdf');
 
   return (
     <div className="border border-slate-200 rounded-2xl p-4 bg-white shadow-sm hover:border-sky-300 transition-all flex flex-col items-center">
@@ -952,7 +1060,7 @@ function DocField({
             variant={currentNote ? 'destructive' : 'ghost'}
             size="icon"
             className={cn(
-              'h-7 w-7 rounded-lg transition-all',
+              'h-7 w-7 rounded-lg transition-all print:hidden',
               currentNote
                 ? 'bg-red-50 text-red-600'
                 : 'text-slate-400 hover:bg-slate-100 hover:text-sky-600',
@@ -967,14 +1075,34 @@ function DocField({
           </Button>
         )}
       </div>
-      <div className="relative group w-full aspect-square max-w-[160px] cursor-pointer overflow-hidden rounded-xl border border-slate-100">
-        <Image
-          src={safeImage(src)}
-          alt={label}
-          fill
-          className="object-cover group-hover:scale-110 transition-transform duration-500"
-        />
-        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors" />
+      <div
+        className="relative group w-full aspect-square max-w-[160px] cursor-pointer overflow-hidden rounded-xl border border-slate-100 bg-slate-50"
+        onClick={() => {
+          if (src) {
+            window.open(safeImage(src), '_blank');
+          }
+        }}
+      >
+        {isPdf ? (
+          <div className="flex flex-col items-center justify-center w-full h-full text-slate-400 group-hover:bg-slate-200 transition-colors">
+            <FileText className="w-12 h-12 mb-2 text-rose-500 group-hover:scale-110 transition-transform duration-300" />
+            <span className="text-[10px] font-bold tracking-wider text-slate-500 group-hover:text-slate-800">
+              PDF FILE
+            </span>
+          </div>
+        ) : (
+          <Image
+            src={safeImage(src)}
+            alt={label}
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-500"
+          />
+        )}
+        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+          <div className="bg-white/90 text-slate-800 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm transform translate-y-2 group-hover:translate-y-0 transition-all">
+            Review
+          </div>
+        </div>
       </div>
 
       {(showInput || currentNote) &&

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/context/auth-context';
 import { useLanguage } from '@/app/context/language-context';
 import { useTour } from '@/app/hooks/useTour';
@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   FileText,
 } from 'lucide-react';
-import Image from 'next/image';
 
 import {
   Card,
@@ -30,7 +29,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 
 import {
   Dialog,
@@ -237,15 +235,6 @@ function formatTanggalID(
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(dateString));
-}
-
-function formatTime(dateStr?: string | null, lang: string = 'id') {
-  if (!dateStr) return '-';
-  const locale = lang === 'en' ? 'en-US' : 'id-ID';
-  return new Date(dateStr).toLocaleTimeString(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 }
 
 // --- KOMPONEN UTAMA ---
